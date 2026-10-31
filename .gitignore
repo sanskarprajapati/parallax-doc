@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+*.pyc
+node_modules/
+# films made with the plugin never belong in this repo
+renders/
+snapshots/
+.hyperframes/
+*.mp4
+*.mov
+*.m4a
+*.wav
+*.mp3
+examples/**/assets/
+.env

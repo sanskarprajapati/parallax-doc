@@ -1,0 +1,126 @@
+<!doctype html>
+<html
+  lang="en"
+  data-composition-variables='[
+    {"id":"color-ink","type":"color","label":"Text","default":"#f4f1ea"},
+    {"id":"color-accent","type":"color","label":"Accent red","default":"#ff1f35"},
+    {"id":"font-title","type":"string","label":"Title font","default":"Inter"},
+    {"id":"font-script","type":"string","label":"Emphasis font","default":"Cormorant Upright"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* Cormorant Upright (SIL Open Font License, assets/fonts/OFL.txt) */
+      @font-face {
+        font-family: "Cormorant Upright";
+        src: url("assets/fonts/CormorantUpright-Medium.ttf") format("truetype");
+        font-weight: 500;
+      }
+      @font-face {
+        font-family: "Cormorant Upright";
+        src: url("assets/fonts/CormorantUpright-SemiBold.ttf") format("truetype");
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: "Cormorant Upright";
+        src: url("assets/fonts/CormorantUpright-Bold.ttf") format("truetype");
+        font-weight: 700;
+      }
+      :root {
+        --color-ink: #f4f1ea;
+        --color-accent: #ff1f35;
+        --font-title: "Inter";
+        --font-script: "Cormorant Upright";
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0b0c0d;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      /* ---- the style's three type roles, shared by every scene ---- */
+      /* emphasis line: calligraphic serif, white with a soft glow, typed on letter by letter */
+      .pd-script {
+        position: absolute;
+        font-family: var(--font-script), serif;
+        font-weight: 600;
+        font-size: 110px;
+        line-height: 1;
+        white-space: pre;
+        color: var(--color-ink);
+        text-shadow:
+          0 0 12px rgba(255, 255, 255, 0.4),
+          0 4px 20px rgba(0, 0, 0, 0.8),
+          0 0 46px rgba(0, 0, 0, 0.45);
+      }
+      /* the one emphasised word: accent red with a heavy bloom */
+      .pd-script .red {
+        color: var(--color-accent);
+        text-shadow:
+          0 0 12px rgba(255, 20, 40, 0.95),
+          0 0 34px rgba(255, 0, 30, 0.7),
+          0 0 70px rgba(255, 0, 30, 0.45);
+      }
+      /* place / date label: small spaced sans caps */
+      .pd-label {
+        position: absolute;
+        font-family: var(--font-title), sans-serif;
+        font-weight: 600;
+        font-size: 34px;
+        letter-spacing: 0.18em;
+        white-space: pre;
+        color: var(--color-ink);
+        text-shadow: 0 3px 12px rgba(0, 0, 0, 0.8);
+      }
+      /* the film's opening title: heavy geometric sans */
+      .pd-title {
+        position: absolute;
+        font-family: var(--font-title), sans-serif;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--color-ink);
+        text-shadow:
+          0 6px 18px rgba(0, 0, 0, 0.55),
+          0 2px 3px rgba(0, 0, 0, 0.6);
+      }
+      .pd-script span,
+      .pd-label span,
+      .pd-typed span {
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      The film: one continuous camera through layered plates, no hard cuts.
+      Each scene is a block from the parallax-doc library; scenes overlap where one
+      world hands over to the next. The grade, grain and film damage are applied
+      afterwards in ../finish.
+      Add one host per scene below (same id, composition id and file name).
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="60" data-width="1920" data-height="1080">
+      <!-- SCENES -->
+      <audio id="vo" class="clip" src="assets/vo/vo.m4a" data-start="0" data-duration="60" data-track-index="20" data-volume="1"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

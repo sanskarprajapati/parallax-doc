@@ -1,0 +1,220 @@
+<!doctype html>
+<html
+  lang="en"
+  data-composition-variables='[
+    {"id":"color-ink","type":"color","label":"Text","default":"#f4f1ea"},
+    {"id":"color-accent","type":"color","label":"Accent red","default":"#ff1f35"},
+    {"id":"font-title","type":"string","label":"Title font","default":"Inter"},
+    {"id":"font-script","type":"string","label":"Emphasis font","default":"Cormorant Upright"}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      /* Cormorant Upright (SIL Open Font License, assets/fonts/OFL.txt) */
+      @font-face {
+        font-family: "Cormorant Upright";
+        src: url("assets/fonts/CormorantUpright-Medium.ttf") format("truetype");
+        font-weight: 500;
+      }
+      @font-face {
+        font-family: "Cormorant Upright";
+        src: url("assets/fonts/CormorantUpright-SemiBold.ttf") format("truetype");
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: "Cormorant Upright";
+        src: url("assets/fonts/CormorantUpright-Bold.ttf") format("truetype");
+        font-weight: 700;
+      }
+      :root {
+        --color-ink: #f4f1ea;
+        --color-accent: #ff1f35;
+        --font-title: "Inter";
+        --font-script: "Cormorant Upright";
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0b0c0d;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      D-Day opener, 1:1 style test of reference video/PgLKq_bp33hPtsWR.mp4.
+      One continuous camera move: no hard cuts. Scenes overlap where one world passes
+      behind a foreground object (smoke, stone cross, newspaper, zoom into a photo).
+      Film look (grade, channel split, grain, dust, dots, vignette) is a second pass: ../finish (render.sh).
+    -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="60"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div
+        id="landing"
+        data-composition-id="landing"
+        data-composition-src="compositions/landing.html"
+        data-start="0"
+        data-duration="12.3"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 1"
+      ></div>
+      <div
+        id="cemetery"
+        data-composition-id="cemetery"
+        data-composition-src="compositions/cemetery.html"
+        data-start="10.55"
+        data-duration="9.4"
+        data-track-index="2"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 2"
+      ></div>
+      <div
+        id="news"
+        data-composition-id="news"
+        data-composition-src="compositions/news.html"
+        data-start="15.25"
+        data-duration="4.62"
+        data-track-index="3"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 3"
+      ></div>
+      <div
+        id="warroom"
+        data-composition-id="warroom"
+        data-composition-src="compositions/warroom.html"
+        data-start="19.85"
+        data-duration="3.15"
+        data-track-index="4"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 4"
+      ></div>
+      <div
+        id="map"
+        data-composition-id="map"
+        data-composition-src="compositions/map.html"
+        data-start="22.25"
+        data-duration="6.5"
+        data-track-index="5"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 5"
+      ></div>
+      <div
+        id="eastern"
+        data-composition-id="eastern"
+        data-composition-src="compositions/eastern.html"
+        data-start="28.4"
+        data-duration="4.9"
+        data-track-index="6"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 6"
+      ></div>
+      <div
+        id="telegram"
+        data-composition-id="telegram"
+        data-composition-src="compositions/telegram.html"
+        data-start="32.85"
+        data-duration="7.35"
+        data-track-index="7"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 7"
+      ></div>
+      <div
+        id="tehran"
+        data-composition-id="tehran"
+        data-composition-src="compositions/tehran.html"
+        data-start="39.4"
+        data-duration="6.3"
+        data-track-index="8"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 8"
+      ></div>
+      <div
+        id="calendar"
+        data-composition-id="calendar"
+        data-composition-src="compositions/calendar.html"
+        data-start="45.45"
+        data-duration="3.05"
+        data-track-index="9"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 9"
+      ></div>
+      <div
+        id="tanks"
+        data-composition-id="tanks"
+        data-composition-src="compositions/tanks.html"
+        data-start="48.15"
+        data-duration="5.4"
+        data-track-index="10"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 10"
+      ></div>
+      <div
+        id="elbe"
+        data-composition-id="elbe"
+        data-composition-src="compositions/elbe.html"
+        data-start="52.6"
+        data-duration="7.4"
+        data-track-index="11"
+        data-track-kind="graphics"
+        data-width="1920"
+        data-height="1080"
+        style="z-index: 11"
+      ></div>
+      <audio
+        id="vo"
+        class="clip"
+        src="assets/vo/vo.m4a"
+        data-start="0"
+        data-duration="60"
+        data-track-index="20"
+        data-volume="1"
+      ></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

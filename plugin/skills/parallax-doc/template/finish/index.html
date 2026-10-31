@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      #raw {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        object-fit: cover;
+      }
+      /* screen mask: a fine dot grid over the whole frame, like an LCD/CRT */
+      #dots {
+        position: absolute;
+        inset: 0;
+        background-image: url("assets/dots.png");
+        background-size: 6px 6px;
+        opacity: 0.12;
+        mix-blend-mode: multiply;
+      }
+      /* thin vertical film scratches, each on screen for a handful of frames */
+      .scratch {
+        position: absolute;
+        top: 0;
+        width: 2px;
+        height: 1080px;
+        background: rgba(235, 235, 225, 0.5);
+        filter: blur(0.4px);
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      The film look, applied once to the whole rendered film (render.sh copies it in as
+      assets/raw.mp4). The grade on #raw: desaturated and cool, contrast up, highlights
+      held, a heavy vignette, grain, deterministic dust and wear, and a slight channel
+      split. Change it with: npx hyperframes media-treatment --selector "#raw" --grading '{...}' --apply
+      Scratches past the film's end are simply never shown.
+    -->
+    <div id="root" data-composition-id="finish" data-start="0" data-duration="60" data-width="1920" data-height="1080">
+      <video data-color-grading="{&quot;preset&quot;:null,&quot;intensity&quot;:1,&quot;adjust&quot;:{&quot;exposure&quot;:0.04,&quot;contrast&quot;:0.14,&quot;highlights&quot;:-0.15,&quot;shadows&quot;:0.04,&quot;whites&quot;:0,&quot;blacks&quot;:0.08,&quot;temperature&quot;:-0.12,&quot;tint&quot;:-0.03,&quot;vibrance&quot;:0,&quot;saturation&quot;:-0.24},&quot;details&quot;:{&quot;vignette&quot;:0.42,&quot;vignetteMidpoint&quot;:0.38,&quot;vignetteRoundness&quot;:0,&quot;vignetteFeather&quot;:0.7,&quot;grain&quot;:0.35,&quot;grainSize&quot;:0.3,&quot;grainRoughness&quot;:0.5},&quot;effects&quot;:{&quot;blur&quot;:0,&quot;pixelate&quot;:0,&quot;chromaBleed&quot;:0,&quot;tapeDamage&quot;:0,&quot;tapeTracking&quot;:0,&quot;tapeNoise&quot;:1,&quot;tapeSpeed&quot;:0.5,&quot;filmArtifacts&quot;:0.5,&quot;halftone&quot;:0,&quot;halftoneSize&quot;:0,&quot;twoInkPrint&quot;:0,&quot;twoInkPrintSize&quot;:0,&quot;ascii&quot;:0,&quot;asciiSize&quot;:0.06578947368421052,&quot;asciiInvert&quot;:0,&quot;asciiStyle&quot;:0,&quot;asciiColor&quot;:1,&quot;asciiRotation&quot;:0,&quot;dither&quot;:0,&quot;ditherSize&quot;:0,&quot;bloom&quot;:0,&quot;bloomRadius&quot;:8,&quot;monoScreen&quot;:0,&quot;monoScreenSize&quot;:0,&quot;monoScreenAngle&quot;:0,&quot;monoScreenSpread&quot;:0,&quot;monoScreenShape&quot;:0,&quot;monoScreenInvert&quot;:0,&quot;scanlines&quot;:0,&quot;scanlineCount&quot;:0,&quot;scanlineSoftness&quot;:0,&quot;chromaticAberration&quot;:0.14,&quot;chromaticAngle&quot;:0,&quot;crtCurvature&quot;:0,&quot;digitalGlitch&quot;:0,&quot;digitalGlitchColorSplit&quot;:0,&quot;digitalGlitchLineTear&quot;:0,&quot;digitalGlitchPixelate&quot;:0,&quot;digitalGlitchBlockAmount&quot;:0,&quot;digitalGlitchBlockDisplacement&quot;:0,&quot;digitalGlitchBlockOpacity&quot;:0,&quot;digitalGlitchSpeed&quot;:0,&quot;engraving&quot;:0,&quot;engravingSpacing&quot;:0.4117647058823529,&quot;engravingMinThickness&quot;:0.2,&quot;engravingMaxThickness&quot;:0.4571428571428572,&quot;engravingAngle&quot;:0.25,&quot;engravingContrast&quot;:0.4666666666666667,&quot;engravingSharpness&quot;:0.59,&quot;engravingWave&quot;:0.2,&quot;engravingWaveFrequency&quot;:0.2222222222222222,&quot;crosshatch&quot;:0,&quot;crosshatchSpacing&quot;:0.28,&quot;crosshatchThickness&quot;:0.25,&quot;crosshatchAngle&quot;:0.25,&quot;crosshatchContrast&quot;:0.3333333333333333,&quot;crosshatchEdges&quot;:0.5,&quot;crosshatchLineWeight&quot;:0,&quot;crosshatchWave&quot;:0.33,&quot;crosshatchWaveFrequency&quot;:0.2222222222222222,&quot;kuwahara&quot;:0,&quot;kuwaharaRadius&quot;:0.14285714285714285,&quot;kuwaharaSharpness&quot;:0.3125,&quot;kuwaharaSaturation&quot;:0.5},&quot;lut&quot;:null,&quot;colorSpace&quot;:&quot;rec709&quot;}" id="raw" class="clip" src="assets/raw.mp4" data-start="0" data-duration="60" data-track-index="1" muted playsinline style="z-index: 1"></video>
+      <div id="dots" class="clip" data-start="0" data-duration="60" data-track-index="2" data-layout-ignore style="z-index: 2"></div>
+      <div id="scratch-1" class="clip scratch" data-start="5.2" data-duration="0.23" data-track-index="3" data-layout-ignore style="z-index: 4; left: 1856px; opacity: 1"></div>
+      <div id="scratch-2" class="clip scratch" data-start="10.0" data-duration="0.4" data-track-index="4" data-layout-ignore style="z-index: 4; left: 214px; opacity: 1"></div>
+      <div id="scratch-3" class="clip scratch" data-start="14.67" data-duration="0.27" data-track-index="5" data-layout-ignore style="z-index: 4; left: 1702px; opacity: 1"></div>
+      <div id="scratch-4" class="clip scratch" data-start="17.5" data-duration="0.2" data-track-index="6" data-layout-ignore style="z-index: 4; left: 1350px; opacity: 0.6"></div>
+      <div id="scratch-5" class="clip scratch" data-start="21.2" data-duration="0.35" data-track-index="7" data-layout-ignore style="z-index: 4; left: 420px; opacity: 1"></div>
+      <div id="scratch-6" class="clip scratch" data-start="25.8" data-duration="0.27" data-track-index="8" data-layout-ignore style="z-index: 4; left: 1610px; opacity: 1"></div>
+      <div id="scratch-7" class="clip scratch" data-start="30.4" data-duration="0.2" data-track-index="9" data-layout-ignore style="z-index: 4; left: 300px; opacity: 0.6"></div>
+      <div id="scratch-8" class="clip scratch" data-start="34.9" data-duration="0.33" data-track-index="10" data-layout-ignore style="z-index: 4; left: 1480px; opacity: 1"></div>
+      <div id="scratch-9" class="clip scratch" data-start="38.1" data-duration="0.23" data-track-index="11" data-layout-ignore style="z-index: 4; left: 640px; opacity: 0.7"></div>
+      <div id="scratch-10" class="clip scratch" data-start="42.6" data-duration="0.3" data-track-index="12" data-layout-ignore style="z-index: 4; left: 1790px; opacity: 1"></div>
+      <div id="scratch-11" class="clip scratch" data-start="47.2" data-duration="0.2" data-track-index="13" data-layout-ignore style="z-index: 4; left: 250px; opacity: 0.6"></div>
+      <div id="scratch-12" class="clip scratch" data-start="50.9" data-duration="0.37" data-track-index="14" data-layout-ignore style="z-index: 4; left: 1220px; opacity: 1"></div>
+      <div id="scratch-13" class="clip scratch" data-start="55.3" data-duration="0.23" data-track-index="15" data-layout-ignore style="z-index: 4; left: 520px; opacity: 0.7"></div>
+      <div id="scratch-14" class="clip scratch" data-start="58.4" data-duration="0.3" data-track-index="16" data-layout-ignore style="z-index: 4; left: 1650px; opacity: 1"></div>
+      <div id="scratch-15" class="clip scratch" data-start="63.1" data-duration="0.27" data-track-index="17" data-layout-ignore style="z-index: 4; left: 880px; opacity: 1"></div>
+      <div id="scratch-16" class="clip scratch" data-start="67.9" data-duration="0.23" data-track-index="18" data-layout-ignore style="z-index: 4; left: 1530px; opacity: 0.7"></div>
+      <div id="scratch-17" class="clip scratch" data-start="72.4" data-duration="0.3" data-track-index="19" data-layout-ignore style="z-index: 4; left: 360px; opacity: 1"></div>
+      <div id="scratch-18" class="clip scratch" data-start="77.0" data-duration="0.2" data-track-index="20" data-layout-ignore style="z-index: 4; left: 1210px; opacity: 0.6"></div>
+      <div id="scratch-19" class="clip scratch" data-start="81.6" data-duration="0.33" data-track-index="21" data-layout-ignore style="z-index: 4; left: 1740px; opacity: 1"></div>
+      <div id="scratch-20" class="clip scratch" data-start="86.3" data-duration="0.23" data-track-index="22" data-layout-ignore style="z-index: 4; left: 560px; opacity: 0.7"></div>
+      <audio id="vo" class="clip" src="assets/vo.m4a" data-start="0" data-duration="60" data-track-index="30" data-volume="1"></audio>
+      <audio id="bed" class="clip" src="assets/bed.m4a" data-start="0" data-duration="60" data-track-index="31" data-volume="1"></audio>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["finish"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

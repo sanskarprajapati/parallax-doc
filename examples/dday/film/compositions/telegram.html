@@ -1,0 +1,162 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #tg-desk-wrap,
+    #tg-paper-blur,
+    #tg-drop {
+      position: absolute;
+      inset: 0;
+    }
+    #tg-desk-wrap {
+      background: #140f0b;
+      opacity: 0;
+    }
+    #tg-sway {
+      position: absolute;
+      inset: 0;
+      transform-origin: 960px 700px;
+    }
+    .tg-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+      transform-origin: 0 0;
+    }
+    .tg-cam > img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+      display: block;
+    }
+    #tg-text {
+      position: absolute;
+      left: 1830px;
+      top: 1040px;
+      font-family: var(--font-script, "Cormorant Upright"), serif;
+      font-weight: 600;
+      font-size: 150px;
+      line-height: 1;
+      white-space: pre;
+      color: var(--color-ink, #f4f1ea);
+      transform-origin: 0 100%;
+      transform: perspective(1200px) rotateX(24deg) rotateZ(-6deg);
+      text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.4),
+        0 4px 18px rgba(0, 0, 0, 0.7);
+    }
+    #tg-text span {
+      opacity: 0;
+    }
+    #tg-text .red {
+      color: var(--color-accent, #ff1f35);
+      text-shadow:
+        0 0 12px rgba(255, 20, 40, 0.95),
+        0 0 34px rgba(255, 0, 30, 0.7),
+        0 0 70px rgba(255, 0, 30, 0.45);
+    }
+  </style>
+  <div id="root" data-composition-id="telegram" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <filter id="tg-mbv" x="0%" y="-5%" width="100%" height="110%"><feGaussianBlur id="tg-mbv-g" stdDeviation="0 0" /></filter>
+    </svg>
+    <!-- under the telegram: the desk it came from (shown once the paper fills the frame) -->
+    <div id="tg-desk-wrap" data-layout-ignore>
+      <div id="tg-desk-cam" class="tg-cam">
+        <img src="assets/gen/desk.jpg" alt="A government desk in 1943, stacked with telegrams" />
+        <div id="tg-text" data-text="|delayed.">delayed.</div>
+      </div>
+    </div>
+    <!-- the telegram held in two hands -->
+    <div id="tg-drop" data-layout-ignore>
+      <div id="tg-paper-blur">
+        <div id="tg-sway">
+          <div id="tg-cam" class="tg-cam">
+            <img src="assets/cut/telegram.png" alt="Telegram from Moscow: a second front in Europe in 1942" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const FPS = 30;
+      const tl = gsap.timeline({ paused: true });
+      const L = Math.log;
+
+      function typeOn(el, start, frameStep) {
+        const [plain, red] = el.dataset.text.split("|");
+        el.innerHTML = "";
+        [...plain].concat([...red].map((c) => ({ c }))).forEach((ch, i) => {
+          const s = document.createElement("span");
+          s.textContent = typeof ch === "string" ? ch : ch.c;
+          if (typeof ch !== "string") s.className = "red";
+          el.appendChild(s);
+          tl.fromTo(s, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, start + (i * frameStep) / FPS);
+        });
+      }
+
+      // two cameras (paper and desk), each a plate point at frame centre with ln(scale)
+      function makeRig(el, init) {
+        const cam = { ...init };
+        const apply = () => {
+          const s = Math.exp(cam.ls);
+          gsap.set(el, { scale: s, x: 960 - cam.cx * s, y: 540 - cam.cy * s });
+        };
+        const rig = {};
+        Object.keys(cam).forEach((k) => {
+          rig[k] = function (v) {
+            if (v === undefined) return cam[k];
+            cam[k] = v;
+            apply();
+          };
+        });
+        apply();
+        return rig;
+      }
+      const paper = makeRig(document.getElementById("tg-cam"), { ls: L(2.0), cx: 2700, cy: 560 });
+      const desk = makeRig(document.getElementById("tg-desk-cam"), { ls: L(0.78), cx: 1368, cy: 768 });
+
+      // the desk only exists once the paper covers the frame
+      tl.fromTo("#tg-desk-wrap", { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, 4.02);
+
+      // ---- the telegram's left edge leads in from the right, very close, then one pull-back (VO "For two years, Stalin...") ----
+      tl.to(paper, { cx: 2150, cy: 600, ls: L(1.9), duration: 0.45, ease: "none" }, 0.03);
+      tl.to(paper, { cx: 1368, cy: 760, ls: L(0.74), duration: 1.25, ease: "power2.out" }, 0.45);
+      tl.fromTo("#tg-paper-blur", { filter: "blur(16px)" }, { filter: "blur(0px)", duration: 1.0, ease: "sine.out" }, 0);
+
+      // ---- handheld hold, then push in until the paper fills the frame ----
+      tl.to(paper, { ls: L(0.8), cy: 730, duration: 1.55, ease: "sine.inOut" }, 1.7);
+      tl.fromTo("#tg-sway", { rotation: 0, y: 0 }, { rotation: -0.8, y: -6, duration: 1.0, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.4);
+      tl.to(paper, { ls: L(1.32), cx: 1368, cy: 600, duration: 0.85, ease: "sine.inOut" }, 3.25);
+
+      // ---- the hands lower the telegram: it drops out of frame while the camera pushes into the desk ----
+      const mb = document.getElementById("tg-mbv-g");
+      const dropEl = document.getElementById("tg-drop");
+      const dropRig = {
+        v: function (v) {
+          if (v === undefined) return dropRig._v || 0;
+          dropRig._v = v;
+          gsap.set(dropEl, { y: 1700 * v, scale: 1 + 0.25 * v, transformOrigin: "50% 0%" });
+          mb.setAttribute("stdDeviation", `0 ${14 * v}`);
+          dropEl.style.filter = v > 0.02 ? "url(#tg-mbv)" : "none";
+        },
+      };
+      dropRig.v(0);
+      tl.fromTo(dropRig, { v: 0 }, { v: 1, duration: 1.0, ease: "power2.in" }, 4.1);
+      tl.to(desk, { ls: L(0.93), cx: 1520, cy: 820, duration: 3.2, ease: "sine.out" }, 4.1);
+
+      // "delayed." on the desk (VO 38.72 -> local 5.87)
+      typeOn(document.getElementById("tg-text"), 5.8, 2);
+
+      window.__timelines["telegram"] = tl;
+    })();
+  </script>
+</template>

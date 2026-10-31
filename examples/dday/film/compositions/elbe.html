@@ -1,0 +1,153 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #el-world {
+      position: absolute;
+      inset: 0;
+      background: #1a1a1a;
+    }
+    #el-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+      transform-origin: 0 0;
+    }
+    #el-cam img {
+      position: absolute;
+      inset: 0;
+      width: 2736px;
+      height: 1536px;
+      display: block;
+    }
+    .el-line {
+      position: absolute;
+      left: 0;
+      width: 1920px;
+      text-align: center;
+      font-family: var(--font-script, "Cormorant Upright"), serif;
+      font-weight: 600;
+      font-size: 120px;
+      line-height: 1;
+      white-space: pre;
+      color: var(--color-ink, #f4f1ea);
+      text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.4),
+        0 4px 22px rgba(0, 0, 0, 0.9),
+        0 0 60px rgba(0, 0, 0, 0.6);
+    }
+    #el-line1 {
+      top: 110px;
+    }
+    #el-line2 {
+      top: 110px;
+    }
+    .el-line span {
+      opacity: 0;
+    }
+    .el-line .red {
+      color: var(--color-accent, #ff1f35);
+      text-shadow:
+        0 0 12px rgba(255, 20, 40, 0.95),
+        0 0 34px rgba(255, 0, 30, 0.7),
+        0 0 70px rgba(255, 0, 30, 0.45);
+    }
+    #el-hull {
+      position: absolute;
+      left: 0;
+      top: -150px;
+      width: 3150px;
+      height: 1350px;
+    }
+    #el-hull img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: brightness(0.55) saturate(0.6);
+    }
+    #el-black {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      opacity: 0;
+    }
+  </style>
+  <div id="root" data-composition-id="elbe" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <filter id="el-mbh" x="-5%" y="0%" width="110%" height="100%"><feGaussianBlur id="el-mbh-g" stdDeviation="0 0" /></filter>
+    </svg>
+    <div id="el-world" data-layout-ignore>
+      <div id="el-cam">
+        <img src="assets/gen/elbe.jpg" alt="American and Soviet soldiers shake hands on the Elbe, April 1945" />
+      </div>
+      <div id="el-line1" class="el-line" data-text="D-Day |didn't| defeat Hitler.">D-Day didn't defeat Hitler.</div>
+      <div id="el-line2" class="el-line" data-text="who would stand in |Europe|">who would stand in Europe</div>
+    </div>
+    <!-- a tank's hull rolls past the lens left to right; while it covers the frame the world changes -->
+    <div id="el-hull" data-layout-ignore><img src="assets/cut/tank_hull.png" alt="" /></div>
+    <div id="el-black" data-layout-ignore></div>
+  </div>
+  <script>
+    (function () {
+      const FPS = 30;
+      const tl = gsap.timeline({ paused: true });
+
+      // "a|b|c": b is the red emphasis
+      function typeOn(el, start, frameStep) {
+        const parts = el.dataset.text.split("|");
+        el.innerHTML = "";
+        const chars = [];
+        parts.forEach((p, k) => [...p].forEach((c) => chars.push({ c, red: k === 1 })));
+        chars.forEach((ch, i) => {
+          const s = document.createElement("span");
+          s.textContent = ch.c;
+          if (ch.red) s.className = "red";
+          el.appendChild(s);
+          tl.fromTo(s, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, start + (i * frameStep) / FPS);
+        });
+      }
+
+      // ---- the hull pass: x from off-left to off-right; it covers the whole frame for x in [-1230, 0] ----
+      const hullEl = document.getElementById("el-hull");
+      const mb = document.getElementById("el-mbh-g");
+      const hull = { x: -3200 };
+      const rig = {
+        x: function (v) {
+          if (v === undefined) return hull.x;
+          hull.x = v;
+          gsap.set(hullEl, { x: v });
+          // motion blur follows the pass's speed: zero at the ends, peak mid-pass
+          const p = Math.min(Math.max((v + 3200) / 5180, 0), 1);
+          const blur = 22 * Math.sin(Math.PI * p);
+          mb.setAttribute("stdDeviation", `${blur} 0`);
+          hullEl.style.filter = blur > 0.5 ? "url(#el-mbh)" : "none";
+        },
+      };
+      rig.x(-3200);
+      tl.fromTo(rig, { x: -3200 }, { x: 1980, duration: 1.0, ease: "sine.inOut" }, 0);
+      // swap worlds at the middle of the pass (x ~ -600)
+      tl.set("#el-world", { opacity: 0 }, 0);
+      tl.set("#el-world", { opacity: 1 }, 0.47);
+
+      // a slow push toward the handshake
+      const frame = (s, cx, cy) => ({ scale: s, x: 960 - cx * s, y: 540 - cy * s });
+      tl.fromTo("#el-cam", frame(0.75, 1368, 760), { ...frame(0.98, 1400, 700), duration: 7.4, ease: "sine.out" }, 0.47);
+
+      // "D-Day didn't defeat Hitler." (VO 53.21-55.2 -> local 0.6-2.6), then it blurs out
+      typeOn(document.getElementById("el-line1"), 0.65, 1.6);
+      tl.to("#el-line1", { opacity: 0, filter: "blur(10px)", duration: 0.25, ease: "power1.in" }, 2.6);
+      // "who would stand in Europe" (VO 56.1-57.6 -> local 3.5-5.0), held to the end
+      typeOn(document.getElementById("el-line2"), 3.35, 1.8);
+
+      // to black
+      tl.fromTo("#el-black", { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "sine.in" }, 6.65);
+
+      window.__timelines["elbe"] = tl;
+    })();
+  </script>
+</template>

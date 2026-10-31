@@ -1,0 +1,17 @@
+{
+  "name": "parallax-doc",
+  "owner": {
+    "name": "Sanskar Prajapati",
+    "url": "https://github.com/sanskarprajapati"
+  },
+  "metadata": {
+    "description": "Cinematic history documentaries for coding agents: one continuous 2.5D camera, no hard cuts."
+  },
+  "plugins": [
+    {
+      "name": "parallax-doc",
+      "source": "./plugin",
+      "description": "Make a short documentary in the parallax-doc style: layered archival and AI plates, worlds handing over behind objects passing the lens, typed text with one red word, and a film look."
+    }
+  ]
+}

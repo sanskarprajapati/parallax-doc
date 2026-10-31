@@ -1,0 +1,147 @@
+<!--
+  BLOCK handheld-paper: a document held in two hands (newspaper, telegram, letter,
+  photograph) enters very close and soft from one side, one edge leading, then pulls
+  back in a single eased move to a handheld hold with a slight sway. The previous scene
+  stays behind it, defocused (give that scene a defocus at this host's start).
+  Two exits:
+    zoom  - push into a picture printed on the paper; the picture is the next scene's
+            plate, so that scene starts exactly where this one lands.
+    drop  - push until the paper fills the frame, then the hands lower it out of frame
+            and reveal what was underneath (a desk), with an emphasis line in perspective.
+  Reference: D-Day f458-f596 (newspaper -> war room), telegram -> desk.
+  Plates: paper (cutout, hands included), inset (the next scene's plate) or under (desk).
+-->
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #{{id}}-under,
+    #{{id}}-drop,
+    #{{id}}-soft {
+      position: absolute;
+      inset: 0;
+    }
+    #{{id}}-under {
+      background: #140f0b;
+      opacity: 0;
+    }
+    #{{id}}-sway {
+      position: absolute;
+      inset: 0;
+      transform-origin: 960px 700px;
+    }
+    .{{id}}-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+    }
+    .{{id}}-cam > img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+      display: block;
+    }
+    /* the printed picture box, in paper-plate pixels (exit: zoom). Keep it 16:9 so the
+       next scene can start at scale 1 on the same picture: fill scale = 1920 / width. */
+    #{{id}}-inset {
+      position: absolute;
+      left: 1722px;
+      top: 558px;
+      width: 500px;
+      height: 281px;
+      overflow: hidden;
+    }
+    #{{id}}-inset img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    #{{id}}-text {
+      left: 1830px;
+      top: 1040px;
+      font-size: 150px;
+      transform-origin: 0 100%;
+      transform: perspective(1200px) rotateX(24deg) rotateZ(-6deg);
+    }
+  </style>
+  <div id="root" data-composition-id="{{id}}" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <filter id="{{id}}-mbv" x="0%" y="-5%" width="100%" height="110%"><feGaussianBlur id="{{id}}-mbv-g" stdDeviation="0 0" /></filter>
+    </svg>
+    <!-- exit: drop. What the paper was covering. -->
+    <div id="{{id}}-under" data-layout-ignore>
+      <div id="{{id}}-under-cam" class="{{id}}-cam">
+        <img src="assets/gen/under.jpg" alt="What lies beneath the paper" />
+        <div id="{{id}}-text" class="pd-script" data-text="|delayed.|">delayed.</div>
+      </div>
+    </div>
+    <div id="{{id}}-drop" data-layout-ignore>
+      <div id="{{id}}-soft">
+        <div id="{{id}}-sway">
+          <div id="{{id}}-cam" class="{{id}}-cam">
+            <img src="assets/cut/paper.png" alt="A document held in two hands" />
+            <!-- exit: zoom. The next scene's plate, toned like print until the zoom lands. -->
+            <div id="{{id}}-inset"><img id="{{id}}-inset-img" src="assets/gen/next.jpg" alt="" /></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="assets/lib/parallax.js"></script>
+  <script>
+    (function () {
+      const CONFIG = {
+        exit: "zoom", // "zoom" | "drop"
+        // camera keyframes on the paper plate: [scale, cx, cy]
+        enter: { from: [2.1, 2772, 520], lead: [2.0, 2190, 540], settle: [0.8, 1420, 800], leadDur: 0.45, settleDur: 1.25 },
+        hold: { to: [0.85, 1440, 790], at: 1.7, dur: 1.68, sway: 0.9 },
+        // exit zoom: the inset box centre and the scale that makes its picture fill the frame (1920 / box width * 1.0)
+        zoom: { to: [3.84, 1972, 698.5], at: 3.38, dur: 1.25 },
+        // exit drop: fill the frame with paper, then lower it away
+        drop: { fill: [1.32, 1368, 600], fillAt: 3.25, fillDur: 0.85, at: 4.1, dur: 1.0, under: { from: [0.78, 1368, 768], to: [0.93, 1520, 820], dur: 3.2 }, text: { at: 5.8, step: 2 } },
+      };
+      const tl = gsap.timeline({ paused: true });
+      const id = "{{id}}";
+      const $ = (s) => document.getElementById(id + "-" + s);
+      const C = CONFIG;
+      const R = ([s, cx, cy]) => ({ ls: L(s), cx, cy });
+
+      const paper = cameraRig($("cam"), R(C.enter.from));
+      tl.to(paper, { ...R(C.enter.lead), duration: C.enter.leadDur, ease: "none" }, 0.03);
+      tl.to(paper, { ...R(C.enter.settle), duration: C.enter.settleDur, ease: "power2.out" }, C.enter.leadDur);
+      tl.fromTo($("soft"), { filter: "blur(16px)" }, { filter: "blur(0px)", duration: 1.0, ease: "sine.out" }, 0);
+      tl.to(paper, { ...R(C.hold.to), duration: C.hold.dur, ease: "sine.inOut" }, C.hold.at);
+      const sway = driver(0, (v) => gsap.set($("sway"), { rotation: C.hold.sway * Math.sin(v * Math.PI), y: -7 * Math.sin(v * Math.PI) }));
+      tl.fromTo(sway, { v: 0 }, { v: 1, duration: C.hold.dur + 0.2, ease: "none" }, C.hold.at - 0.25);
+
+      if (C.exit === "zoom") {
+        const Z = C.zoom;
+        tl.to(paper, { ...R(Z.to), duration: Z.dur, ease: "sine.out" }, Z.at);
+        tl.fromTo($("inset-img"), { filter: "saturate(0.45) sepia(0.35)" }, { filter: "saturate(1) sepia(0)", duration: 1.0, ease: "sine.inOut" }, Z.at + 0.12);
+      } else {
+        const D = C.drop;
+        tl.to(paper, { ...R(D.fill), duration: D.fillDur, ease: "sine.inOut" }, D.fillAt);
+        tl.fromTo($("under"), { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, D.at - 0.08);
+        const drop = $("drop");
+        const lower = driver(0, (v) => {
+          gsap.set(drop, { y: 1700 * v, scale: 1 + 0.25 * v, transformOrigin: "50% 0%" });
+          motionBlur(drop, id + "-mbv", 0, 14 * v);
+        });
+        tl.fromTo(lower, { v: 0 }, { v: 1, duration: D.dur, ease: "power2.in" }, D.at);
+        const under = cameraRig($("under-cam"), R(D.under.from));
+        tl.to(under, { ...R(D.under.to), duration: D.under.dur, ease: "sine.out" }, D.at);
+        typeOn(tl, $("text"), D.text.at, D.text.step);
+      }
+
+      window.__timelines[id] = tl;
+    })();
+  </script>
+</template>

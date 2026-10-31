@@ -1,0 +1,166 @@
+<!--
+  BLOCK plate-push: one plate, a camera that never stops (push, pan or both), a small
+  caps label and an emphasis line typed on with the narration. Optional: a foreground
+  object drifting past the lens, ground-rumble shake, a red line that draws itself, text
+  laid in perspective on a surface, and a defocus when the next scene covers it.
+  Entry: "cut-in" (starts full-frame, for scenes that a zoom-through landed in) or
+  "blur-in" (sharpens out of a blur, after a dive into a detail).
+  Reference: D-Day war room (f592-), Eastern Front, Operation Bagration.
+  Plates: plate (opaque), passer (cutout, optional).
+-->
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #111;
+    }
+    #{{id}}-in,
+    #{{id}}-shake {
+      position: absolute;
+      inset: 0;
+    }
+    #{{id}}-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+    }
+    #{{id}}-cam > img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      object-fit: cover;
+      display: block;
+    }
+    #{{id}}-line {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: visible;
+    }
+    #{{id}}-line path {
+      fill: none;
+      stroke: var(--color-accent);
+      stroke-width: 7;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 8px rgba(255, 20, 40, 0.95)) drop-shadow(0 0 22px rgba(255, 0, 30, 0.6));
+    }
+    #{{id}}-label {
+      left: 150px;
+      top: 96px;
+    }
+    #{{id}}-text {
+      left: 140px;
+      top: 144px;
+      /* text in perspective on a surface (a table, the ground): uncomment and tune
+      transform-origin: 0 100%;
+      transform: perspective(1100px) rotateX(18deg) rotateY(-12deg) rotateZ(-3deg); */
+    }
+    #{{id}}-passer {
+      position: absolute;
+      left: 0;
+      top: -260px;
+      width: 900px;
+      height: 1600px;
+    }
+    #{{id}}-passer img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: blur(10px) brightness(0.45);
+    }
+  </style>
+  <div id="root" data-composition-id="{{id}}" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <div id="{{id}}-in" data-layout-ignore>
+      <div id="{{id}}-shake">
+        <div id="{{id}}-cam">
+          <img src="assets/gen/plate.jpg" alt="The scene" />
+          <svg id="{{id}}-line" viewBox="0 0 1920 1080"><path id="{{id}}-path" d="" /></svg>
+        </div>
+      </div>
+      <div id="{{id}}-label" class="pd-label" data-text=""></div>
+      <div id="{{id}}-text" class="pd-script" data-text="Operation |Bagration|">Operation Bagration</div>
+      <div id="{{id}}-passer"><img src="assets/cut/passer.png" alt="" /></div>
+    </div>
+  </div>
+  <script src="assets/lib/parallax.js"></script>
+  <script>
+    (function () {
+      const CONFIG = {
+        duration: 5.4, // this scene's length (its host's data-duration)
+        entry: "cut-in", // "cut-in" | "blur-in"
+        // camera on the 1920x1080 plate frame: [scale, cx, cy] from -> to over the whole scene
+        camera: { from: [1, 960, 540], to: [1.2, 1180, 520], ease: "sine.out" },
+        shake: 0, // ground rumble in px (3 for tanks or artillery, 0 for none)
+        passer: null, // { at: 0.15, dur: 2.6, fromX: 2100, toX: -1100 } a foreground object drifting past
+        line: null, // { d: "M1005 708 C ...", at: 1.4, dur: 0.55 } a red line drawn on the plate (frame px)
+        label: { at: 0.35, step: 1.5 },
+        text: { at: 1.25, step: 2 },
+        defocus: null, // seconds: blur this world when the next scene arrives in front of it
+        // exit by diving into a detail (a map on a table, a date): push hard and blur, and the
+        // next scene sharpens in underneath ("blur-in" or map-route). null for none.
+        dive: null, // { at: 1.7, to: [2.6, 900, 820], dur: 1.45, blurAt: 2.45 }
+        // false: text stays put on screen while the camera moves (default; safe near edges).
+        // true: text is attached to the plate and moves with it (words lying on a table or
+        // a map; give #<id>-text a perspective transform and keep it away from the edges).
+        textOnPlate: false,
+      };
+      const tl = gsap.timeline({ paused: true });
+      const id = "{{id}}";
+      const $ = (s) => document.getElementById(id + "-" + s);
+      const C = CONFIG;
+
+      if (C.textOnPlate) $("cam").appendChild($("text"));
+
+      if (C.entry === "blur-in") {
+        tl.fromTo($("in"), { opacity: 0, filter: "blur(20px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.55, ease: "sine.out" }, 0);
+      }
+      gsap.set($("cam"), { transformOrigin: "0 0" });
+      const camDur = C.dive ? C.dive.at : C.duration;
+      tl.fromTo($("cam"), frame(...C.camera.from), { ...frame(...C.camera.to), duration: camDur, ease: C.camera.ease }, 0);
+      if (C.dive) {
+        tl.to($("cam"), { ...frame(...C.dive.to), duration: C.dive.dur, ease: "power2.in" }, C.dive.at);
+        tl.fromTo($("cam"), { filter: "blur(0px)" }, { filter: "blur(16px)", duration: C.dive.at + C.dive.dur - C.dive.blurAt, ease: "power1.in" }, C.dive.blurAt);
+      }
+
+      if (C.shake) {
+        const a = C.shake;
+        const rumble = driver(0, (t) => gsap.set($("shake"), {
+          x: a * Math.sin(t * 37) + 0.5 * a * Math.sin(t * 83 + 1.3),
+          y: 0.8 * a * Math.sin(t * 43 + 0.7) + 0.4 * a * Math.sin(t * 97),
+        }));
+        tl.fromTo(rumble, { v: 0 }, { v: C.duration, duration: C.duration, ease: "none" }, 0);
+      }
+
+      if (C.passer) {
+        const P = C.passer;
+        tl.fromTo($("passer"), { x: P.fromX }, { x: P.toX, duration: P.dur, ease: "sine.inOut" }, P.at);
+      } else {
+        $("passer").style.display = "none";
+      }
+
+      if (C.line) {
+        const path = $("path");
+        path.setAttribute("d", C.line.d);
+        const len = path.getTotalLength() || 900;
+        tl.fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: C.line.dur, ease: "power2.out" }, C.line.at);
+      }
+
+      if ($("label").dataset.text) typeOn(tl, $("label"), C.label.at, C.label.step);
+      if ($("text").dataset.text) typeOn(tl, $("text"), C.text.at, C.text.step);
+
+      if (C.defocus != null) {
+        tl.fromTo($("in"), { filter: "blur(0px) brightness(1)" }, { filter: "blur(10px) brightness(0.75)", duration: 0.8, ease: "sine.out" }, C.defocus);
+      }
+
+      window.__timelines[id] = tl;
+    })();
+  </script>
+</template>

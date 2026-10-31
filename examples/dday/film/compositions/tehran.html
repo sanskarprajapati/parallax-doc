@@ -1,0 +1,137 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #th-reveal {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #2b2b2b;
+    }
+    #th-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+      transform-origin: 0 0;
+    }
+    #th-cam img {
+      position: absolute;
+      inset: 0;
+      width: 2736px;
+      height: 1536px;
+      display: block;
+    }
+    #th-date {
+      position: absolute;
+      left: 160px;
+      top: 92px;
+      font-family: var(--font-title, "Inter"), sans-serif;
+      font-weight: 600;
+      font-size: 34px;
+      letter-spacing: 0.18em;
+      white-space: pre;
+      color: var(--color-ink, #f4f1ea);
+      text-shadow: 0 3px 12px rgba(0, 0, 0, 0.8);
+    }
+    #th-text {
+      position: absolute;
+      left: 150px;
+      top: 140px;
+      font-family: var(--font-script, "Cormorant Upright"), serif;
+      font-weight: 600;
+      font-size: 124px;
+      line-height: 1;
+      white-space: pre;
+      color: var(--color-ink, #f4f1ea);
+      text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.4),
+        0 4px 22px rgba(0, 0, 0, 0.9),
+        0 0 50px rgba(0, 0, 0, 0.55);
+    }
+    #th-date span,
+    #th-text span {
+      opacity: 0;
+    }
+    #th-text .red {
+      color: var(--color-accent, #ff1f35);
+      text-shadow:
+        0 0 12px rgba(255, 20, 40, 0.95),
+        0 0 34px rgba(255, 0, 30, 0.7),
+        0 0 70px rgba(255, 0, 30, 0.45);
+    }
+    #th-column {
+      position: absolute;
+      left: 0;
+      top: -420px;
+      width: 1067px;
+      height: 1900px;
+    }
+    #th-column img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: blur(9px) brightness(0.7) saturate(0.4);
+    }
+  </style>
+  <div id="root" data-composition-id="tehran" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <!-- Tehran exists only right of the passing column's centre -->
+    <div id="th-reveal" data-layout-ignore>
+      <div id="th-cam">
+        <img src="assets/gen/tehran.jpg" alt="Stalin, Roosevelt and Churchill at the Tehran Conference, 1943" />
+      </div>
+      <div id="th-date" data-text="TEHRAN · NOVEMBER 1943|">TEHRAN · NOVEMBER 1943</div>
+      <div id="th-text" data-text="France, by |May.">France, by May.</div>
+    </div>
+    <div id="th-column" data-layout-ignore><img src="assets/cut/column.png" alt="" /></div>
+  </div>
+  <script>
+    (function () {
+      const FPS = 30;
+      const tl = gsap.timeline({ paused: true });
+
+      function typeOn(el, start, frameStep) {
+        const [plain, red] = el.dataset.text.split("|");
+        el.innerHTML = "";
+        [...plain].concat([...red].map((c) => ({ c }))).forEach((ch, i) => {
+          const s = document.createElement("span");
+          s.textContent = typeof ch === "string" ? ch : ch.c;
+          if (typeof ch !== "string") s.className = "red";
+          el.appendChild(s);
+          tl.fromTo(s, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, start + (i * frameStep) / FPS);
+        });
+      }
+
+      // ---- the column passes right to left close to the lens; Tehran opens up behind it ----
+      const CENTRE = 533;
+      const col = { x: 2300 };
+      const colEl = document.getElementById("th-column");
+      const reveal = document.getElementById("th-reveal");
+      const rig = {
+        x: function (v) {
+          if (v === undefined) return col.x;
+          col.x = v;
+          gsap.set(colEl, { x: v - CENTRE });
+          reveal.style.clipPath = `polygon(${v}px -100px, 2100px -100px, 2100px 1200px, ${v}px 1200px)`;
+        },
+      };
+      rig.x(2300);
+      tl.fromTo(rig, { x: 2300 }, { x: -620, duration: 1.35, ease: "power1.inOut" }, 0.1);
+
+      // the room, pushing in slowly on the three seated leaders
+      const frame = (s, cx, cy) => ({ scale: s, x: 960 - cx * s, y: 540 - cy * s });
+      tl.fromTo("#th-cam", frame(0.78, 1250, 820), { ...frame(0.98, 1368, 720), duration: 6.3, ease: "sine.out" }, 0);
+
+      // place and date (VO "At Tehran, in late 1943" 39.76-41.9 -> local 0.4-2.5)
+      typeOn(document.getElementById("th-date"), 0.9, 1.5);
+      // "France, by May." (VO 44.16-45.3 -> local 4.76-5.9)
+      typeOn(document.getElementById("th-text"), 4.7, 1.5);
+
+      window.__timelines["tehran"] = tl;
+    })();
+  </script>
+</template>

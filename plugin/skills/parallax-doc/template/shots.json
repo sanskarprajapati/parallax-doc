@@ -1,0 +1,21 @@
+{
+  "model": "black-forest-labs/flux-3-image-klein",
+  "resolution": "2K",
+  "blocks": {
+    "PHOTO": "Cinematic photoreal film still, overcast diffuse light, muted desaturated colour, 35mm lens. No captions, no watermark, no border.",
+    "ARCHIVAL": "Authentic black and white press photograph of the period, grainy, high contrast.",
+    "ISOLATE": "Isolated on a plain pure white background, nothing else in the image.",
+    "ISOLATE_BLACK": "Pure black background, nothing else in the image."
+  },
+  "shots": {
+    "example_plate": {
+      "ratio": "16:9",
+      "prompt": "Describe the whole scene: subject, place, era, time of day, what the camera sees. $PHOTO"
+    },
+    "example_cutout": {
+      "ratio": "9:16",
+      "prompt": "One object that will pass close to the lens, full height of the frame. $ISOLATE",
+      "cutout": { "mode": "flood", "edges": "tlrb", "hard": 28, "soft": 18 }
+    }
+  }
+}

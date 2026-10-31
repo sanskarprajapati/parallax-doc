@@ -1,0 +1,174 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #ca-blur {
+      position: absolute;
+      inset: 0;
+    }
+    #ca-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: 0 0;
+    }
+    /* a desk-calendar page, built so the dates are right: June 1944 starts on a Thursday */
+    #ca-page {
+      position: absolute;
+      left: 160px;
+      top: 40px;
+      width: 1600px;
+      height: 1000px;
+      background: #e8dfcb url("assets/gen/paper.jpg") center / cover;
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.6);
+      transform: rotate(-2deg);
+      font-family: "EB Garamond", serif;
+      color: #2a2420;
+    }
+    #ca-month {
+      position: absolute;
+      left: 60px;
+      top: 40px;
+      font-size: 150px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    #ca-year {
+      position: absolute;
+      right: 70px;
+      top: 70px;
+      font-size: 110px;
+      font-weight: 500;
+      color: #6b1d1d;
+      line-height: 1;
+    }
+    .ca-wd,
+    .ca-day {
+      position: absolute;
+      width: 211px;
+      text-align: center;
+    }
+    .ca-wd {
+      top: 250px;
+      font-family: var(--font-title, "Inter"), sans-serif;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: #5c5249;
+    }
+    .ca-day {
+      height: 132px;
+      line-height: 132px;
+      font-size: 76px;
+      font-weight: 500;
+      border-top: 2px solid rgba(60, 50, 40, 0.25);
+    }
+    #ca-ink {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1600px;
+      height: 1000px;
+      overflow: visible;
+    }
+    #ca-ink .ink {
+      fill: none;
+      stroke: #c4001a;
+      stroke-width: 9;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 6px rgba(255, 20, 40, 0.6));
+    }
+    #ca-label {
+      position: absolute;
+      left: 700px;
+      top: 548px;
+      font-family: var(--font-script, "Cormorant Upright"), serif;
+      font-weight: 700;
+      font-size: 74px;
+      color: #c4001a;
+      white-space: pre;
+      transform: rotate(-12deg);
+    }
+    #ca-label span {
+      opacity: 0;
+    }
+  </style>
+  <div id="root" data-composition-id="calendar" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <div id="ca-blur" data-layout-ignore>
+      <div id="ca-cam">
+        <div id="ca-page">
+          <div id="ca-month">JUNE</div>
+          <div id="ca-year">1944</div>
+          <svg id="ca-ink" viewBox="0 0 1600 1000">
+            <ellipse class="ink" cx="587" cy="518" rx="86" ry="60" transform="rotate(-6 587 518)" />
+            <path id="ca-arc" class="ink" d="M 660 470 C 780 380, 980 470, 1005 700" />
+            <ellipse id="ca-c22" class="ink" cx="1009" cy="782" rx="92" ry="62" transform="rotate(5 1009 782)" />
+          </svg>
+          <div id="ca-label" data-text="16 days|">16 days</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const FPS = 30;
+      const tl = gsap.timeline({ paused: true });
+
+      // weekday header and the 30 days, placed on the 7-column grid
+      const page = document.getElementById("ca-page");
+      ["S", "M", "T", "W", "T", "F", "S"].forEach((d, c) => {
+        const el = document.createElement("div");
+        el.className = "ca-wd";
+        el.style.left = `${60 + c * 211}px`;
+        el.textContent = d;
+        page.appendChild(el);
+      });
+      for (let d = 1; d <= 30; d++) {
+        const i = d - 1 + 4; // June 1 1944 = Thursday
+        const el = document.createElement("div");
+        el.className = "ca-day";
+        el.style.left = `${60 + (i % 7) * 211}px`;
+        el.style.top = `${320 + Math.floor(i / 7) * 132}px`;
+        el.textContent = d;
+        page.insertBefore(el, document.getElementById("ca-ink"));
+      }
+
+      // label typed in red pen
+      const label = document.getElementById("ca-label");
+      label.innerHTML = "";
+      [..."16 days"].forEach((ch, i) => {
+        const s = document.createElement("span");
+        s.textContent = ch;
+        label.appendChild(s);
+        tl.fromTo(s, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, 0.95 + (i * 2) / FPS);
+      });
+
+      // ---- the page rises into frame from below, close and soft, and settles ----
+      const frame = (s, cx, cy) => ({ scale: s, x: 960 - cx * s, y: 540 - cy * s });
+      tl.fromTo("#ca-cam", frame(1.45, 900, -200), { ...frame(1.0, 960, 560), duration: 0.75, ease: "power3.out" }, 0);
+      tl.fromTo("#ca-blur", { filter: "blur(14px)" }, { filter: "blur(0px)", duration: 0.6, ease: "sine.out" }, 0);
+
+      // ---- red pen: 6 June is already circled; draw the arc to 22 June, then circle it ----
+      const draw = (sel, start, dur) => {
+        const el = document.querySelector(sel);
+        const len = (el.getTotalLength && el.getTotalLength()) || 700;
+        tl.fromTo(el, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: dur, ease: "sine.inOut" }, start);
+      };
+      draw("#ca-arc", 0.7, 0.7);
+      draw("#ca-c22", 1.4, 0.45);
+
+      // ---- push into the 22: the date becomes the next scene (22 June 1944, Operation Bagration) ----
+      // 22's cell centre in frame coords at scale 1: page (160,40) + (1009,782)
+      tl.to("#ca-cam", { ...frame(9, 1179, 815), duration: 1.0, ease: "power3.in" }, 2.0);
+      tl.to("#ca-blur", { filter: "blur(12px)", duration: 0.45, ease: "power2.in" }, 2.55);
+
+      window.__timelines["calendar"] = tl;
+    })();
+  </script>
+</template>

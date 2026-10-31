@@ -1,0 +1,128 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #tk-in {
+      position: absolute;
+      inset: 0;
+      background: #7d7462;
+    }
+    #tk-shake {
+      position: absolute;
+      inset: 0;
+    }
+    #tk-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+      transform-origin: 0 0;
+    }
+    #tk-cam img {
+      position: absolute;
+      inset: 0;
+      width: 2736px;
+      height: 1536px;
+      display: block;
+    }
+    #tk-date {
+      position: absolute;
+      left: 150px;
+      top: 96px;
+      font-family: var(--font-title, "Inter"), sans-serif;
+      font-weight: 600;
+      font-size: 34px;
+      letter-spacing: 0.18em;
+      white-space: pre;
+      color: var(--color-ink, #f4f1ea);
+      text-shadow: 0 3px 12px rgba(0, 0, 0, 0.8);
+    }
+    #tk-text {
+      position: absolute;
+      left: 140px;
+      top: 144px;
+      font-family: var(--font-script, "Cormorant Upright"), serif;
+      font-weight: 600;
+      font-size: 124px;
+      line-height: 1;
+      white-space: pre;
+      color: var(--color-ink, #f4f1ea);
+      text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.4),
+        0 4px 22px rgba(0, 0, 0, 0.85),
+        0 0 50px rgba(0, 0, 0, 0.5);
+    }
+    #tk-date span,
+    #tk-text span {
+      opacity: 0;
+    }
+    #tk-text .red {
+      color: var(--color-accent, #ff1f35);
+      text-shadow:
+        0 0 12px rgba(255, 20, 40, 0.95),
+        0 0 34px rgba(255, 0, 30, 0.7),
+        0 0 70px rgba(255, 0, 30, 0.45);
+    }
+  </style>
+  <div id="root" data-composition-id="tanks" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <div id="tk-in" data-layout-ignore>
+      <div id="tk-shake">
+        <div id="tk-cam">
+          <img src="assets/gen/tanks.jpg" alt="Soviet T-34 tanks charging across a field, summer 1944" />
+        </div>
+      </div>
+      <div id="tk-date" data-text="22 JUNE 1944|">22 JUNE 1944</div>
+      <div id="tk-text" data-text="Operation |Bagration">Operation Bagration</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const FPS = 30;
+      const tl = gsap.timeline({ paused: true });
+
+      function typeOn(el, start, frameStep) {
+        const [plain, red] = el.dataset.text.split("|");
+        el.innerHTML = "";
+        [...plain].concat([...red].map((c) => ({ c }))).forEach((ch, i) => {
+          const s = document.createElement("span");
+          s.textContent = typeof ch === "string" ? ch : ch.c;
+          if (typeof ch !== "string") s.className = "red";
+          el.appendChild(s);
+          tl.fromTo(s, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, start + (i * frameStep) / FPS);
+        });
+      }
+
+      // arrives through the calendar's zoom: sharpens out of the blur
+      tl.fromTo("#tk-in", { opacity: 0, filter: "blur(20px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.55, ease: "sine.out" }, 0);
+
+      // a push toward the lead tank as the column bears down
+      const frame = (s, cx, cy) => ({ scale: s, x: 960 - cx * s, y: 540 - cy * s });
+      tl.fromTo("#tk-cam", frame(0.86, 1368, 760), { ...frame(1.08, 1520, 820), duration: 5.4, ease: "sine.inOut" }, 0);
+
+      // ground rumble: a small deterministic shake from layered sines of timeline time
+      const shake = { t: 0 };
+      const shakeEl = document.getElementById("tk-shake");
+      const rumble = {
+        t: function (v) {
+          if (v === undefined) return shake.t;
+          shake.t = v;
+          gsap.set(shakeEl, {
+            x: 3.2 * Math.sin(v * 37) + 1.6 * Math.sin(v * 83 + 1.3),
+            y: 2.6 * Math.sin(v * 43 + 0.7) + 1.2 * Math.sin(v * 97),
+          });
+        },
+      };
+      tl.fromTo(rumble, { t: 0 }, { t: 5.4, duration: 5.4, ease: "none" }, 0);
+
+      // date then name (VO "launched Operation Bagration" 48.54-50.5 -> local 0.4-2.35)
+      typeOn(document.getElementById("tk-date"), 0.35, 1.5);
+      typeOn(document.getElementById("tk-text"), 1.25, 2);
+
+      window.__timelines["tanks"] = tl;
+    })();
+  </script>
+</template>

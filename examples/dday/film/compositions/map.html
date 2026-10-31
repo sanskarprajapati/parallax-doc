@@ -1,0 +1,181 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #2a1d12;
+    }
+    #mp-blur,
+    #mp-rot {
+      position: absolute;
+      inset: 0;
+    }
+    #mp-rot {
+      transform-origin: 960px 540px;
+    }
+    #mp-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 3136px;
+      height: 1344px;
+      transform-origin: 0 0;
+    }
+    #mp-plate {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 3136px;
+      height: 1344px;
+      display: block;
+    }
+    #mp-route {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 3136px;
+      height: 1344px;
+      overflow: visible;
+    }
+    #mp-route path {
+      fill: none;
+      stroke: var(--color-accent, #ff1f35);
+      stroke-width: 9;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 8px rgba(255, 20, 40, 0.95)) drop-shadow(0 0 22px rgba(255, 0, 30, 0.6));
+    }
+    #mp-normandy {
+      fill: var(--color-accent, #ff1f35);
+      filter: drop-shadow(0 0 10px rgba(255, 20, 40, 0.9));
+    }
+    /* the pinned print: its inner image is what the zoom-through lands on */
+    #mp-print {
+      position: absolute;
+      left: 2160px;
+      top: 590px;
+      width: 620px;
+      height: 366px;
+      padding: 20px;
+      background: #e9e3d4;
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.55);
+      transform: rotate(-3deg);
+      transform-origin: 310px 183px;
+    }
+    #mp-print img {
+      display: block;
+      width: 580px;
+      height: 326px;
+      object-fit: cover;
+    }
+    #mp-pin {
+      position: absolute;
+      left: 300px;
+      top: -6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ff6b6b, #a80012 70%);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+    #mp-text {
+      position: absolute;
+      left: 1650px;
+      top: 300px;
+      font-family: var(--font-script, "Cormorant Upright"), serif;
+      font-weight: 600;
+      font-size: 118px;
+      line-height: 1;
+      white-space: pre;
+      color: var(--color-ink, #f4f1ea);
+      text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.4),
+        0 4px 18px rgba(0, 0, 0, 0.75);
+    }
+    #mp-text span {
+      opacity: 0;
+    }
+    #mp-text .red {
+      color: var(--color-accent, #ff1f35);
+      text-shadow:
+        0 0 12px rgba(255, 20, 40, 0.95),
+        0 0 34px rgba(255, 0, 30, 0.7);
+    }
+  </style>
+  <div id="root" data-composition-id="map" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <div id="mp-blur" data-layout-ignore>
+      <div id="mp-rot">
+        <div id="mp-cam">
+          <img id="mp-plate" src="assets/gen/map_europe.jpg" alt="1944 map of Europe" />
+          <svg id="mp-route" viewBox="0 0 3136 1344">
+            <circle id="mp-normandy" cx="725" cy="823" r="16" />
+            <path id="mp-path" d="M725 823 C 1000 760, 1300 700, 1650 690 S 2150 640, 2300 680" />
+          </svg>
+          <div id="mp-print">
+            <img src="assets/gen/eastern_front.jpg" alt="German soldiers on the Eastern Front" />
+            <div id="mp-pin"></div>
+          </div>
+          <div id="mp-text" data-text="in the |East">in the East</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const FPS = 30;
+      const tl = gsap.timeline({ paused: true });
+      const L = Math.log;
+
+      // typed text: "|" marks where the red emphasis starts
+      function typeOn(el, start, frameStep) {
+        const [plain, red] = el.dataset.text.split("|");
+        el.innerHTML = "";
+        [...plain].concat([...red].map((c) => ({ c }))).forEach((ch, i) => {
+          const s = document.createElement("span");
+          s.textContent = typeof ch === "string" ? ch : ch.c;
+          if (typeof ch !== "string") s.className = "red";
+          el.appendChild(s);
+          tl.fromTo(s, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, start + (i * frameStep) / FPS);
+        });
+      }
+
+      // one camera: plate point (cx, cy) at frame centre, scale held as ln(scale)
+      const cam = { ls: L(2.3), cx: 760, cy: 840, rot: 0 };
+      const camEl = document.getElementById("mp-cam");
+      const rotEl = document.getElementById("mp-rot");
+      function apply() {
+        const s = Math.exp(cam.ls);
+        gsap.set(camEl, { scale: s, x: 960 - cam.cx * s, y: 540 - cam.cy * s });
+        gsap.set(rotEl, { rotation: cam.rot });
+      }
+      const rig = {};
+      Object.keys(cam).forEach((k) => {
+        rig[k] = function (v) {
+          if (v === undefined) return cam[k];
+          cam[k] = v;
+          apply();
+        };
+      });
+      apply();
+
+      // ---- arrive under the war room's blur, settle on Normandy ----
+      tl.fromTo("#mp-blur", { opacity: 0, filter: "blur(18px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.75, ease: "sine.out" }, 0);
+      tl.to(rig, { ls: L(0.95), cx: 980, cy: 760, duration: 1.3, ease: "power2.out" }, 0.35);
+
+      // ---- the red line runs east from Normandy; the camera follows its head ----
+      const path = document.getElementById("mp-path");
+      const len = path.getTotalLength() || 1700;
+      tl.fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 2.7, ease: "sine.inOut" }, 1.4);
+      tl.to(rig, { ls: L(1.05), cx: 2050, cy: 690, duration: 3.2, ease: "sine.inOut" }, 1.35);
+
+      // "in the East" with the narration (VO 26.87-27.8 -> local 4.32-5.25)
+      typeOn(document.getElementById("mp-text"), 4.5, 2);
+
+      // ---- zoom through the pinned print; its picture becomes the Eastern Front scene ----
+      // print inner image centre on the plate: (2160+20+290, 590+20+163); fill: 1920/580
+      tl.to(rig, { ls: L(1920 / 580), cx: 2470, cy: 773, rot: 3, duration: 1.15, ease: "sine.inOut" }, 5.0);
+
+      window.__timelines["map"] = tl;
+    })();
+  </script>
+</template>

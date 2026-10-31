@@ -1,0 +1,145 @@
+<!--
+  BLOCK map-route: an old paper map. The scene arrives under the previous scene's
+  push-and-blur, settles on a start point, then a glowing red route draws itself across
+  the map while the camera follows its head. A photograph is pinned at the far end;
+  the camera turns and zooms into it, and that photograph is the next scene's plate
+  (start that scene with entry "cut-in" on the same image).
+  Reference: D-Day map, Normandy -> the Eastern Front.
+  Plates: map (opaque, wide: 21:9), print (the next scene's plate).
+-->
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #2a1d12;
+    }
+    #{{id}}-soft,
+    #{{id}}-turn {
+      position: absolute;
+      inset: 0;
+    }
+    #{{id}}-turn {
+      transform-origin: 960px 540px;
+    }
+    #{{id}}-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 3136px;
+      height: 1344px;
+    }
+    #{{id}}-cam > img,
+    #{{id}}-route {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 3136px;
+      height: 1344px;
+      display: block;
+      overflow: visible;
+    }
+    #{{id}}-route path {
+      fill: none;
+      stroke: var(--color-accent);
+      stroke-width: 9;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 8px rgba(255, 20, 40, 0.95)) drop-shadow(0 0 22px rgba(255, 0, 30, 0.6));
+    }
+    #{{id}}-route circle {
+      fill: var(--color-accent);
+      filter: drop-shadow(0 0 10px rgba(255, 20, 40, 0.9));
+    }
+    /* the pinned print, in map pixels; its picture is 16:9 (580x326) */
+    #{{id}}-print {
+      position: absolute;
+      left: 2160px;
+      top: 590px;
+      width: 620px;
+      height: 366px;
+      padding: 20px;
+      background: #e9e3d4;
+      box-shadow: 0 18px 30px rgba(0, 0, 0, 0.55);
+      transform: rotate(-3deg);
+      transform-origin: 310px 183px;
+    }
+    #{{id}}-print img {
+      display: block;
+      width: 580px;
+      height: 326px;
+      object-fit: cover;
+    }
+    #{{id}}-pin {
+      position: absolute;
+      left: 300px;
+      top: -6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #ff6b6b, #a80012 70%);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    }
+    #{{id}}-text {
+      left: 1650px;
+      top: 300px;
+      font-size: 118px;
+    }
+  </style>
+  <div id="root" data-composition-id="{{id}}" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <div id="{{id}}-soft" data-layout-ignore>
+      <div id="{{id}}-turn">
+        <div id="{{id}}-cam">
+          <img src="assets/gen/map.jpg" alt="An old paper map" />
+          <svg id="{{id}}-route" viewBox="0 0 3136 1344">
+            <circle id="{{id}}-start" cx="725" cy="823" r="16" />
+            <path id="{{id}}-path" d="M725 823 C 1000 760, 1300 700, 1650 690 S 2150 640, 2300 680" />
+          </svg>
+          <div id="{{id}}-print">
+            <img src="assets/gen/print.jpg" alt="The photograph pinned at the route's end" />
+            <div id="{{id}}-pin"></div>
+          </div>
+          <div id="{{id}}-text" class="pd-script" data-text="in the |East|">in the East</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="assets/lib/parallax.js"></script>
+  <script>
+    (function () {
+      const CONFIG = {
+        arrive: { from: [2.3, 760, 840], at: 0, dur: 0.75 }, // sharpens out of the previous scene's blur
+        settle: { to: [0.95, 980, 760], at: 0.35, dur: 1.3 },
+        route: { at: 1.4, dur: 2.7 },
+        follow: { to: [1.05, 2050, 690], at: 1.35, dur: 3.2 },
+        text: { at: 4.5, step: 2 },
+        // zoom into the print: centre of its picture on the map, fill = 1920 / 580, and turn by
+        // minus the print's rotation so it lands level
+        zoom: { cx: 2470, cy: 773, fill: 1920 / 580, turn: 3, at: 5.0, dur: 1.15 },
+      };
+      const tl = gsap.timeline({ paused: true });
+      const id = "{{id}}";
+      const $ = (s) => document.getElementById(id + "-" + s);
+      const C = CONFIG;
+      const turnEl = $("turn");
+      const cam = cameraRig($("cam"), { ls: L(C.arrive.from[0]), cx: C.arrive.from[1], cy: C.arrive.from[2], rot: 0 }, (c) =>
+        gsap.set(turnEl, { rotation: c.rot }));
+      const R = ([s, cx, cy]) => ({ ls: L(s), cx, cy });
+
+      tl.fromTo($("soft"), { opacity: 0, filter: "blur(18px)" }, { opacity: 1, filter: "blur(0px)", duration: C.arrive.dur, ease: "sine.out" }, C.arrive.at);
+      tl.to(cam, { ...R(C.settle.to), duration: C.settle.dur, ease: "power2.out" }, C.settle.at);
+
+      const path = $("path");
+      const len = path.getTotalLength() || 1700;
+      tl.fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: C.route.dur, ease: "sine.inOut" }, C.route.at);
+      tl.to(cam, { ...R(C.follow.to), duration: C.follow.dur, ease: "sine.inOut" }, C.follow.at);
+
+      typeOn(tl, $("text"), C.text.at, C.text.step);
+
+      const Z = C.zoom;
+      tl.to(cam, { ls: L(Z.fill), cx: Z.cx, cy: Z.cy, rot: Z.turn, duration: Z.dur, ease: "sine.inOut" }, Z.at);
+
+      window.__timelines[id] = tl;
+    })();
+  </script>
+</template>

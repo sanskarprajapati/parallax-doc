@@ -1,0 +1,114 @@
+<!--
+  BLOCK cover-pass: something huge and close (a tank's hull, a train, a crowd) rolls past
+  the lens left to right with horizontal motion blur. It is wider than the frame, so for
+  a few frames it covers everything, and the world changes underneath. The new plate
+  then pushes in slowly while one or two emphasis lines type on in turn. It can end
+  the film with a fade to black.
+  Reference: D-Day ending (tank hull -> the Elbe handshake).
+  Plates: plate (opaque), passer (cutout, very wide: 21:9, fills the frame height).
+-->
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #{{id}}-world {
+      position: absolute;
+      inset: 0;
+      background: #1a1a1a;
+      opacity: 0;
+    }
+    #{{id}}-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+    }
+    #{{id}}-cam > img {
+      width: 1920px;
+      height: 1080px;
+      object-fit: cover;
+      display: block;
+    }
+    #{{id}}-line1,
+    #{{id}}-line2 {
+      left: 0;
+      top: 110px;
+      width: 1920px;
+      text-align: center;
+      font-size: 120px;
+    }
+    #{{id}}-passer {
+      position: absolute;
+      left: 0;
+      top: -150px;
+      width: 3150px;
+      height: 1350px;
+    }
+    #{{id}}-passer img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: brightness(0.55) saturate(0.6);
+    }
+    #{{id}}-black {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      opacity: 0;
+    }
+  </style>
+  <div id="root" data-composition-id="{{id}}" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <filter id="{{id}}-mbh" x="-5%" y="0%" width="110%" height="100%"><feGaussianBlur id="{{id}}-mbh-g" stdDeviation="0 0" /></filter>
+    </svg>
+    <div id="{{id}}-world" data-layout-ignore>
+      <div id="{{id}}-cam"><img src="assets/gen/plate.jpg" alt="The world after the pass" /></div>
+      <div id="{{id}}-line1" class="pd-script" data-text="D-Day |didn't| defeat Hitler.">D-Day didn't defeat Hitler.</div>
+      <div id="{{id}}-line2" class="pd-script" data-text="who would stand in |Europe|">who would stand in Europe</div>
+    </div>
+    <div id="{{id}}-passer" data-layout-ignore><img src="assets/cut/passer.png" alt="" /></div>
+    <div id="{{id}}-black" data-layout-ignore></div>
+  </div>
+  <script src="assets/lib/parallax.js"></script>
+  <script>
+    (function () {
+      const CONFIG = {
+        duration: 7.4,
+        // the pass: passer x from -> to; it covers the frame while x is between 1920 - width and 0
+        pass: { from: -3200, to: 1980, dur: 1.0, swapAt: 0.47, blurPeak: 22 },
+        camera: { from: [1, 960, 540], to: [1.3, 980, 500] }, // [scale, cx, cy] on the 1920x1080 frame
+        line1: { at: 0.65, step: 1.6, outAt: 2.6 }, // outAt null keeps it
+        line2: { at: 3.35, step: 1.8 }, // empty data-text for one line only
+        fadeOut: { at: 6.65, dur: 0.7 }, // null if a scene follows
+      };
+      const tl = gsap.timeline({ paused: true });
+      const id = "{{id}}";
+      const $ = (s) => document.getElementById(id + "-" + s);
+      const C = CONFIG, P = C.pass;
+
+      const passer = $("passer");
+      const pass = driver(P.from, (x) => {
+        gsap.set(passer, { x });
+        const p = Math.min(Math.max((x - P.from) / (P.to - P.from), 0), 1);
+        motionBlur(passer, id + "-mbh", P.blurPeak * Math.sin(Math.PI * p), 0);
+      });
+      tl.fromTo(pass, { v: P.from }, { v: P.to, duration: P.dur, ease: "sine.inOut" }, 0);
+      tl.fromTo($("world"), { opacity: 0 }, { opacity: 1, duration: 0.03, ease: "none" }, P.swapAt);
+
+      gsap.set($("cam"), { transformOrigin: "0 0" });
+      tl.fromTo($("cam"), frame(...C.camera.from), { ...frame(...C.camera.to), duration: C.duration - P.swapAt, ease: "sine.out" }, P.swapAt);
+
+      typeOn(tl, $("line1"), C.line1.at, C.line1.step);
+      if (C.line1.outAt != null) tl.to($("line1"), { opacity: 0, filter: "blur(10px)", duration: 0.25, ease: "power1.in" }, C.line1.outAt);
+      if ($("line2").dataset.text) typeOn(tl, $("line2"), C.line2.at, C.line2.step);
+
+      if (C.fadeOut) tl.fromTo($("black"), { opacity: 0 }, { opacity: 1, duration: C.fadeOut.dur, ease: "sine.in" }, C.fadeOut.at);
+
+      window.__timelines[id] = tl;
+    })();
+  </script>
+</template>

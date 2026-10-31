@@ -1,0 +1,136 @@
+<!--
+  BLOCK object-wipe: a large object very close to the lens (a stone cross, a column, a
+  tree trunk, a doorframe) sweeps right to left, soft with depth of field. The new world
+  exists only right of the object's centre line, so it opens up behind it. Then the
+  camera dollies through the new plate and an emphasis line types on in depth: part of
+  the plate (a headstone, a pillar) can be redrawn in front of the words so they sit
+  behind it.
+  Reference: D-Day f322-f462 (cross into cemetery), Tehran (column).
+  Plates: plate (opaque), object (cutout, tall, plain background).
+-->
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #{{id}}-reveal {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #1d2123;
+    }
+    #{{id}}-focus {
+      position: absolute;
+      inset: 0;
+    }
+    #{{id}}-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+    }
+    #{{id}}-cam > img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+      display: block;
+    }
+    /* the plate region redrawn in front of the text (a polygon in plate pixels); none = no occluder */
+    #{{id}}-occluder {
+      clip-path: polygon(0 0, 0 0, 0 0);
+    }
+    #{{id}}-label {
+      left: 1640px;
+      top: 120px;
+    }
+    #{{id}}-text {
+      left: 1640px;
+      top: 165px;
+      font-size: 100px;
+      line-height: 94px;
+    }
+    #{{id}}-object {
+      position: absolute;
+      left: 0;
+      top: -420px;
+      width: 1067px;
+      height: 1900px;
+    }
+    #{{id}}-object img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      filter: blur(9px) brightness(0.7) saturate(0.4);
+    }
+  </style>
+  <div id="root" data-composition-id="{{id}}" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <div id="{{id}}-reveal" data-layout-ignore>
+      <div id="{{id}}-focus">
+        <div id="{{id}}-cam">
+          <img id="{{id}}-plate" src="assets/gen/plate.jpg" alt="The new world behind the object" />
+          <div id="{{id}}-label" class="pd-label" data-text=""></div>
+          <div id="{{id}}-text" class="pd-script" data-text="That is not&#10;in |question|">That is not in question</div>
+          <img id="{{id}}-occluder" src="assets/gen/plate.jpg" alt="" />
+        </div>
+      </div>
+    </div>
+    <div id="{{id}}-object" data-layout-ignore><img src="assets/cut/object.png" alt="" /></div>
+  </div>
+  <script src="assets/lib/parallax.js"></script>
+  <script>
+    (function () {
+      const CONFIG = {
+        // the object's centre line in its own image, scaled (px from its left edge)
+        object: { centre: 533, fromX: 2300, toX: -620, at: 0.1, dur: 1.35, fromY: 0, toY: 0, fromRot: 0, toRot: 0 },
+        // camera on the plate: two framings (scale, plate point at frame centre) and a slow drift after
+        dolly: { from: [1.1, 873, 650], to: [1.55, 1882, 421], at: 0.3, dur: 4.6, driftTo: 1.62, driftDur: 4.5 },
+        label: { at: 0.9, step: 1.5 }, // optional small caps label (empty data-text = none)
+        text: { at: 1.8, step: 2.2 }, // emphasis line, timed to the narration
+        defocus: { at: null, blur: 9 }, // blur the world when the next scene covers it (seconds or null)
+      };
+      const tl = gsap.timeline({ paused: true });
+      const id = "{{id}}";
+      const $ = (s) => document.getElementById(id + "-" + s);
+      const O = CONFIG.object;
+
+      // the object and the reveal are one value: the centre line's screen x
+      const obj = $("object"), reveal = $("reveal");
+      const pos = { x: O.fromX, y: O.fromY, r: O.fromRot };
+      const set = () => {
+        gsap.set(obj, { x: pos.x - O.centre, y: pos.y, rotation: pos.r });
+        clipRightOf(reveal, pos.x);
+      };
+      const rig = {};
+      ["x", "y", "r"].forEach((k) => {
+        rig[k] = function (v) {
+          if (v === undefined) return pos[k];
+          pos[k] = v;
+          set();
+        };
+      });
+      set();
+      tl.fromTo(rig, { x: O.fromX }, { x: O.toX, duration: O.dur, ease: "power1.inOut" }, O.at);
+      if (O.fromY !== O.toY) tl.fromTo(rig, { y: O.fromY }, { y: O.toY, duration: O.dur * 0.55, ease: "power2.out" }, O.at);
+      if (O.fromRot !== O.toRot) tl.fromTo(rig, { r: O.fromRot }, { r: O.toRot, duration: O.dur, ease: "sine.out" }, O.at);
+
+      const D = CONFIG.dolly;
+      gsap.set($("cam"), { transformOrigin: "0 0" });
+      tl.fromTo($("cam"), frame(...D.from), { ...frame(...D.to), duration: D.dur, ease: "sine.inOut" }, D.at);
+      tl.to($("cam"), { ...frame(D.driftTo, D.to[1], D.to[2]), duration: D.driftDur, ease: "none" }, D.at + D.dur);
+
+      if ($("label").dataset.text) typeOn(tl, $("label"), CONFIG.label.at, CONFIG.label.step);
+      typeOn(tl, $("text"), CONFIG.text.at, CONFIG.text.step);
+
+      if (CONFIG.defocus.at != null) {
+        tl.fromTo($("focus"), { filter: "blur(0px) brightness(1)" }, { filter: `blur(${CONFIG.defocus.blur}px) brightness(0.8)`, duration: 0.8, ease: "sine.out" }, CONFIG.defocus.at);
+      }
+
+      window.__timelines[id] = tl;
+    })();
+  </script>
+</template>

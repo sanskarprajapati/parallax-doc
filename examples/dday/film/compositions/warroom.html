@@ -1,0 +1,103 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #120e0b;
+    }
+    #wr-cam {
+      position: absolute;
+      inset: 0;
+      transform-origin: 960px 540px;
+    }
+    #wr-img {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      display: block;
+    }
+    #wr-text {
+      position: absolute;
+      left: 1000px;
+      top: 600px;
+      font-family: var(--font-script, "Cormorant Upright"), serif;
+      font-weight: 600;
+      font-size: 104px;
+      line-height: 1;
+      white-space: pre;
+      color: var(--color-ink, #f4f1ea);
+      transform-origin: 0 100%;
+      transform: perspective(1100px) rotateX(18deg) rotateY(-12deg) rotateZ(-3deg);
+      text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.45),
+        0 4px 16px rgba(0, 0, 0, 0.6);
+    }
+    #wr-text span {
+      opacity: 0;
+    }
+    #wr-line {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: visible;
+    }
+    #wr-path {
+      fill: none;
+      stroke: var(--color-accent, #ff1f35);
+      stroke-width: 7;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 8px rgba(255, 20, 40, 0.95)) drop-shadow(0 0 22px rgba(255, 0, 30, 0.6));
+    }
+  </style>
+  <div
+    id="root"
+    data-composition-id="warroom"
+    data-width="1920"
+    data-height="1080"
+    data-layout-allow-overflow
+    data-layout-allow-overlap
+  >
+    <div id="wr-cam">
+      <img id="wr-img" src="assets/gen/warroom.jpg" alt="Allied commanders over the invasion map, June 1944" />
+      <svg id="wr-line" viewBox="0 0 1920 1080" data-layout-ignore>
+        <path id="wr-path" d="M1005 708 C 960 630, 880 600, 800 650 S 620 780, 560 792" />
+      </svg>
+      <div id="wr-text"><span>s</span><span>t</span><span>r</span><span>a</span><span>t</span><span>e</span><span>g</span><span>i</span><span>c</span><span> </span><span>r</span><span>e</span><span>a</span><span>l</span><span>i</span><span>t</span><span>y</span></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const FPS = 30;
+      const T0 = 19.85;
+      const at = (frame) => frame / FPS - T0;
+      const tl = gsap.timeline({ paused: true });
+
+      // starts exactly where the newspaper zoom landed (photo box filling the frame), keeps pushing
+      tl.fromTo("#wr-cam", { scale: 1.074 }, { scale: 1.12, duration: 1.7, ease: "sine.inOut" }, 0);
+      // then the camera dives into the map on the table; the map scene takes over under the blur
+      tl.to("#wr-cam", { scale: 2.6, x: 156, y: -728, duration: 1.45, ease: "power2.in" }, 1.7);
+      tl.fromTo("#wr-cam", { filter: "blur(0px)" }, { filter: "blur(16px)", duration: 0.7, ease: "power1.in" }, 2.45);
+
+      // "strategic reality" typed onto the table (f608-f639)
+      const typeFrames = [608, 610, 612, 613, 615, 617, 619, 622, 624, 627, 628, 630, 632, 634, 636, 637, 639];
+      document.querySelectorAll("#wr-text span").forEach((el, i) => {
+        tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, at(typeFrames[i]));
+      });
+
+      // red line draws itself from the words down to the Normandy coast (f630-f645)
+      const path = document.getElementById("wr-path");
+      const len = path.getTotalLength() || 900;
+      tl.fromTo(
+        path,
+        { strokeDasharray: len, strokeDashoffset: len },
+        { strokeDashoffset: 0, duration: 0.55, ease: "power2.out" },
+        at(630),
+      );
+
+      window.__timelines["warroom"] = tl;
+    })();
+  </script>
+</template>

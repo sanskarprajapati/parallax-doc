@@ -1,0 +1,191 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #cm-reveal {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #1d2123;
+    }
+    #cm-blur {
+      position: absolute;
+      inset: 0;
+    }
+    #cm-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+      transform-origin: 0 0;
+    }
+    #cm-cam img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2736px;
+      height: 1536px;
+      display: block;
+    }
+    #cm-occ {
+      clip-path: polygon(1803px 316px, 1962px 316px, 1962px 560px, 1803px 560px);
+    }
+    #cm-text {
+      position: absolute;
+      left: 1640px;
+      top: 165px;
+      font-family: var(--font-script, "Cormorant Upright"), serif;
+      font-weight: 500;
+      font-size: 100px;
+      line-height: 94px;
+      white-space: pre;
+      color: var(--color-ink, #f4f1ea);
+      text-shadow:
+        0 0 10px rgba(255, 255, 255, 0.35),
+        0 4px 14px rgba(0, 0, 0, 0.55);
+    }
+    #cm-text span {
+      opacity: 0;
+    }
+    #cm-text .red {
+      color: var(--color-accent, #ff1f35);
+      text-shadow:
+        0 0 12px rgba(255, 20, 40, 0.95),
+        0 0 34px rgba(255, 0, 30, 0.7),
+        0 0 70px rgba(255, 0, 30, 0.45);
+    }
+    /* foreground stone cross, built from stone texture so its arm always runs off-frame */
+    #cm-cross {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1px;
+      height: 1px;
+    }
+    #cm-cross-in {
+      position: absolute;
+      left: 0;
+      top: 0;
+      filter: blur(9px) brightness(0.62) contrast(1.05) saturate(0.4);
+    }
+    #cm-cross-in > div {
+      position: absolute;
+      background-color: #77746f;
+    }
+    #cm-post {
+      left: -450px;
+      top: -1500px;
+      width: 900px;
+      height: 3300px;
+      background: url("assets/gen/stone_tex.jpg") 0 0 / 900px 1600px repeat-y;
+      box-shadow: inset -160px 0 160px rgba(0, 0, 0, 0.4);
+    }
+    /* only the left arm shows: seen from below, it rises up-left out of frame */
+    #cm-arm {
+      left: -3100px;
+      top: -520px;
+      width: 3200px;
+      transform-origin: 100% 100%;
+      transform: rotate(20deg);
+      height: 520px;
+      background: url("assets/gen/stone_tex_h2.jpg") 0 0 / 1600px 900px repeat-x;
+      box-shadow: inset 0 -90px 90px rgba(0, 0, 0, 0.5);
+    }
+    /* curved web where the underside of the arm meets the post */
+    .cm-fillet {
+      top: -230px;
+      width: 280px;
+      height: 280px;
+      background: url("assets/gen/stone_tex.jpg") 0 0 / 900px 1600px;
+    }
+    #cm-fillet-l {
+      left: -728px;
+      -webkit-mask-image: radial-gradient(circle 280px at 0 100%, transparent 99%, #000 100%);
+      mask-image: radial-gradient(circle 280px at 0 100%, transparent 99%, #000 100%);
+    }
+    #cm-fillet-r {
+      left: 299px;
+      -webkit-mask-image: radial-gradient(circle 170px at 100% 100%, transparent 99%, #000 100%);
+      mask-image: radial-gradient(circle 170px at 100% 100%, transparent 99%, #000 100%);
+    }
+  </style>
+  <div
+    id="root"
+    data-composition-id="cemetery"
+    data-width="1920"
+    data-height="1080"
+    data-layout-allow-overflow
+    data-layout-allow-overlap
+  >
+    <!-- the cemetery is revealed only to the right of the passing stone cross -->
+    <div id="cm-reveal" data-layout-ignore>
+      <div id="cm-blur">
+        <div id="cm-cam">
+          <img id="cm-plate" src="assets/gen/cemetery.jpg" alt="Normandy American Cemetery" />
+          <div id="cm-text"><span>T</span><span>h</span><span>a</span><span>t</span><span> </span><span>i</span><span>s</span><span> </span><span>n</span><span>o</span><span>t</span>
+<span>i</span><span>n</span><span> </span><span class="red">q</span><span class="red">u</span><span class="red">e</span><span class="red">s</span><span class="red">t</span><span class="red">i</span><span class="red">o</span><span class="red">n</span></div>
+          <!-- top of the Williams cross, in front of the words -->
+          <img id="cm-occ" src="assets/gen/cemetery.jpg" alt="" />
+        </div>
+      </div>
+    </div>
+    <!-- foreground: huge dark stone cross swinging past the lens -->
+    <div id="cm-cross" data-layout-ignore>
+      <div id="cm-cross-in">
+        <div id="cm-arm"></div>
+        <div id="cm-post"></div>
+        <div id="cm-fillet-l" class="cm-fillet"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const FPS = 30;
+      const T0 = 10.55; // host start, for converting reference frames to local time
+      const at = (frame) => frame / FPS - T0;
+      const tl = gsap.timeline({ paused: true });
+
+      // ---- T2: the cross swings down from the top right and its post sweeps right to left ----
+      // reference post centre: f330 ~2350 (only the arm corner in frame), f342 ~1200, f350 ~800,
+      // f356 ~240, f366 off left. The cemetery exists only right of the post centre.
+      const W0 = 0.35, W1 = 1.62; // local seconds (f327 -> f365)
+      const cross = { x: 2500, y: -420, r: -9 };
+      const reveal = document.getElementById("cm-reveal");
+      const crossEl = document.getElementById("cm-cross");
+      const rightOf = (L) => `polygon(${L}px -100px, 2100px -100px, 2100px 1200px, ${L}px 1200px)`;
+      const rig = {};
+      ["x", "y", "r"].forEach((k) => {
+        rig[k] = function (v) {
+          if (v === undefined) return cross[k];
+          cross[k] = v;
+          gsap.set(crossEl, { x: cross.x, y: cross.y, rotation: cross.r });
+          reveal.style.clipPath = rightOf(cross.x);
+        };
+      });
+      rig.x(cross.x);
+      tl.fromTo(rig, { x: 2450 }, { x: -520, duration: W1 - W0, ease: "none" }, W0);
+      tl.fromTo(rig, { y: -300 }, { y: 330, duration: 0.7, ease: "power2.out" }, W0);
+      tl.fromTo(rig, { r: 6 }, { r: 0, duration: W1 - W0, ease: "sine.out" }, W0);
+
+      // ---- S4 camera: dolly forward and truck right from Anderson to Williams ----
+      const frame = (s, cx, cy) => ({ scale: s, x: 960 - cx * s, y: 540 - cy * s });
+      tl.fromTo("#cm-cam", frame(1.1, 873, 650), { ...frame(1.55, 1882, 421), duration: 4.6, ease: "sine.inOut" }, 0.3);
+      tl.to("#cm-cam", { ...frame(1.62, 1882, 421), duration: 4.5, ease: "none" }, 4.9);
+
+      // ---- "That is not / in question", typed in with the narration (f392-f429) ----
+      const typeFrames = [371, 373, 375, 376, 378, 379, 382, 383, 384, 386, 387, 392, 393, 394, 397, 398, 400, 402, 403, 405, 407, 408];
+      document.querySelectorAll("#cm-text span").forEach((el, i) => {
+        tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.05, ease: "none" }, at(typeFrames[i]));
+      });
+
+      // ---- the newspaper arrives in front: the cemetery falls out of focus (f460-f496) ----
+      tl.fromTo("#cm-blur", { filter: "blur(0px) brightness(1)" }, { filter: "blur(9px) brightness(0.8)", duration: 0.8, ease: "sine.out" }, at(462));
+
+      window.__timelines["cemetery"] = tl;
+    })();
+  </script>
+</template>

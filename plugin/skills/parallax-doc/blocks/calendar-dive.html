@@ -1,0 +1,198 @@
+<!--
+  BLOCK calendar-dive: a desk-calendar page, built in HTML so the dates are right, rises
+  into frame close and soft and settles. Red pen: the first date is already circled, a
+  line draws to the second date with a note ("16 days"), the second date is circled,
+  then the camera dives into it and the next scene sharpens in (entry "blur-in").
+  Reference: D-Day calendar, 6 June -> 22 June 1944.
+  Plates: paper (a flat paper texture, opaque).
+-->
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #{{id}}-soft {
+      position: absolute;
+      inset: 0;
+    }
+    #{{id}}-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+    }
+    #{{id}}-page {
+      position: absolute;
+      left: 160px;
+      top: 40px;
+      width: 1600px;
+      height: 1000px;
+      background: #e8dfcb url("assets/gen/paper.jpg") center / cover;
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.6);
+      transform: rotate(-2deg);
+      font-family: "EB Garamond", serif;
+      color: #2a2420;
+    }
+    #{{id}}-month {
+      position: absolute;
+      left: 60px;
+      top: 40px;
+      font-size: 150px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+    #{{id}}-year {
+      position: absolute;
+      right: 70px;
+      top: 70px;
+      font-size: 110px;
+      font-weight: 500;
+      color: #6b1d1d;
+      line-height: 1;
+    }
+    .{{id}}-wd,
+    .{{id}}-day {
+      position: absolute;
+      width: 211px;
+      text-align: center;
+    }
+    .{{id}}-wd {
+      top: 250px;
+      font-family: var(--font-title), sans-serif;
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: #5c5249;
+    }
+    .{{id}}-day {
+      height: 132px;
+      line-height: 132px;
+      font-size: 76px;
+      font-weight: 500;
+      border-top: 2px solid rgba(60, 50, 40, 0.25);
+    }
+    #{{id}}-ink {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1600px;
+      height: 1000px;
+      overflow: visible;
+    }
+    #{{id}}-ink .ink {
+      fill: none;
+      stroke: #c4001a;
+      stroke-width: 9;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 6px rgba(255, 20, 40, 0.6));
+    }
+    #{{id}}-note {
+      position: absolute;
+      font-family: var(--font-script), serif;
+      font-weight: 700;
+      font-size: 74px;
+      color: #c4001a;
+      white-space: pre;
+      transform: rotate(-12deg);
+    }
+  </style>
+  <div id="root" data-composition-id="{{id}}" data-width="1920" data-height="1080" data-layout-allow-overflow data-layout-allow-overlap>
+    <div id="{{id}}-soft" data-layout-ignore>
+      <div id="{{id}}-cam">
+        <div id="{{id}}-page">
+          <div id="{{id}}-month">JUNE</div>
+          <div id="{{id}}-year">1944</div>
+          <svg id="{{id}}-ink" viewBox="0 0 1600 1000">
+            <ellipse id="{{id}}-c1" class="ink" rx="86" ry="60" />
+            <path id="{{id}}-arc" class="ink" d="" />
+            <ellipse id="{{id}}-c2" class="ink" rx="92" ry="62" />
+          </svg>
+          <div id="{{id}}-note" class="pd-typed" data-text="16 days">16 days</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="assets/lib/parallax.js"></script>
+  <script>
+    (function () {
+      const CONFIG = {
+        // the month to draw: name, year, days, weekday of the 1st (0 = Sunday)
+        month: { name: "JUNE", year: "1944", days: 30, firstWeekday: 4 },
+        from: 6, // already circled
+        to: 22, // circled by the pen, then dived into
+        arc: { at: 0.7, dur: 0.7 },
+        circle: { at: 1.4, dur: 0.45 },
+        note: { at: 0.95, step: 2 },
+        dive: { at: 2.0, dur: 1.0, scale: 9, blurAt: 2.55 },
+      };
+      const tl = gsap.timeline({ paused: true });
+      const id = "{{id}}";
+      const $ = (s) => document.getElementById(id + "-" + s);
+      const C = CONFIG;
+      const page = $("page");
+      $("month").textContent = C.month.name;
+      $("year").textContent = C.month.year;
+
+      // grid: 7 columns from x 60 (211 px), rows from y 320 (132 px)
+      const cell = (d) => {
+        const i = d - 1 + C.month.firstWeekday;
+        return { x: 60 + (i % 7) * 211, y: 320 + Math.floor(i / 7) * 132 };
+      };
+      ["S", "M", "T", "W", "T", "F", "S"].forEach((d, c) => {
+        const el = document.createElement("div");
+        el.className = id + "-wd";
+        el.style.left = `${60 + c * 211}px`;
+        el.textContent = d;
+        page.appendChild(el);
+      });
+      for (let d = 1; d <= C.month.days; d++) {
+        const p = cell(d);
+        const el = document.createElement("div");
+        el.className = id + "-day";
+        el.style.left = `${p.x}px`;
+        el.style.top = `${p.y}px`;
+        el.textContent = d;
+        page.insertBefore(el, $("ink"));
+      }
+      const a = cell(C.from), b = cell(C.to);
+      const A = { x: a.x + 105, y: a.y + 66 }, B = { x: b.x + 105, y: b.y + 66 };
+      const setEllipse = (el, p, rot) => {
+        el.setAttribute("cx", p.x);
+        el.setAttribute("cy", p.y);
+        el.setAttribute("transform", `rotate(${rot} ${p.x} ${p.y})`);
+      };
+      setEllipse($("c1"), A, -6);
+      setEllipse($("c2"), B, 5);
+      const mid = { x: (A.x + B.x) / 2, y: Math.min(A.y, B.y) - 120 };
+      $("arc").setAttribute("d", `M ${A.x + 73} ${A.y - 48} C ${mid.x - 120} ${mid.y}, ${mid.x + 160} ${mid.y + 40}, ${B.x - 4} ${B.y - 82}`);
+      Object.assign($("note").style, { left: `${mid.x - 120}px`, top: `${mid.y + 70}px` });
+
+      // the page rises in from below, close and soft
+      gsap.set($("cam"), { transformOrigin: "0 0" });
+      tl.fromTo($("cam"), frame(1.45, 900, -200), { ...frame(1.0, 960, 560), duration: 0.75, ease: "power3.out" }, 0);
+      tl.fromTo($("soft"), { filter: "blur(14px)" }, { filter: "blur(0px)", duration: 0.6, ease: "sine.out" }, 0);
+
+      const draw = (el, at, dur) => {
+        const len = el.getTotalLength ? el.getTotalLength() || 700 : 700;
+        tl.fromTo(el, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: dur, ease: "sine.inOut" }, at);
+      };
+      draw($("arc"), C.arc.at, C.arc.dur);
+      draw($("c2"), C.circle.at, C.circle.dur);
+      typeOn(tl, $("note"), C.note.at, C.note.step);
+
+      // dive into the second date. The page is rotated -2deg about its centre (frame 960,540).
+      const th = (-2 * Math.PI) / 180;
+      const dx = B.x - 800, dy = B.y - 500;
+      const tx = 960 + dx * Math.cos(th) - dy * Math.sin(th);
+      const ty = 540 + dx * Math.sin(th) + dy * Math.cos(th);
+      tl.to($("cam"), { ...frame(C.dive.scale, tx, ty), duration: C.dive.dur, ease: "power3.in" }, C.dive.at);
+      tl.to($("soft"), { filter: "blur(12px)", duration: C.dive.at + C.dive.dur - C.dive.blurAt, ease: "power2.in" }, C.dive.blurAt);
+
+      window.__timelines[id] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,20 @@
+{
+  "name": "parallax-doc",
+  "version": "0.1.0",
+  "description": "Make a short documentary in the parallax-doc style: layered archival and AI plates, worlds handing over behind objects passing the lens, typed text with one red word, and a film look.",
+  "author": {
+    "name": "Sanskar Prajapati",
+    "url": "https://github.com/sanskarprajapati"
+  },
+  "repository": "https://github.com/sanskarprajapati/parallax-doc",
+  "license": "MIT",
+  "keywords": [
+    "video",
+    "documentary",
+    "hyperframes",
+    "motion",
+    "history",
+    "parallax"
+  ],
+  "icon": ".claude-plugin/icon.png"
+}

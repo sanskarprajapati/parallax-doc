@@ -1,0 +1,160 @@
+{
+  "model": "black-forest-labs/flux-3-image-klein",
+  "resolution": "2K",
+  "blocks": {
+    "PHOTO": "Cinematic photoreal film still, overcast diffuse light, muted desaturated colour, 35mm lens. No captions, no watermark, no border.",
+    "ISOLATE": "Isolated on a plain pure white background, nothing else in the image."
+  },
+  "shots": {
+    "flag": {
+      "ratio": "16:9",
+      "prompt": "Extreme close-up of a large 1940s American flag with 48 stars filling the entire frame edge to edge, fabric rippling in strong wind with deep soft folds, the blue star canton occupying the left third, red and white stripes running across the rest. No pole, no sky. $PHOTO"
+    },
+    "archival": {
+      "ratio": "16:9",
+      "prompt": "Authentic 1944 black and white WWII press photograph, grainy, high contrast: American GIs packed in a landing craft heading for Normandy, seen from a low angle at water level. The riveted steel ramp and gunwale of the boat run across the bottom third of the frame. In the centre a soldier in an M1 helmet and field jacket leans on the gunwale looking straight at the camera; around him other soldiers in netted helmets, some looking away. On the right a small 48-star US flag on a short pole. Above them only a plain flat white overcast sky.",
+      "cutout": {
+        "mode": "flood",
+        "hard": 38,
+        "soft": 22,
+        "edges": "t",
+        "erode": 3
+      }
+    },
+    "spray": {
+      "ratio": "9:16",
+      "prompt": "A tall dense vertical wall of grey-white sea spray, wet sand and gravel debris erupting straight upward from a shell impact on a beach, filling the entire frame height from top to bottom and about half its width, sharp gritty flying particles and pebbles, dense opaque core with ragged edges. Pure black background, nothing else in the image.",
+      "cutout": {
+        "mode": "bright"
+      }
+    },
+    "stone_tex": {
+      "ratio": "9:16",
+      "prompt": "Flat full-frame texture of a weathered pale grey limestone monument surface, evenly lit, subtle dark vertical rain-water stains and streaks, fine pits, no edges, no corners, no objects, fills the entire frame."
+    },
+    "map_europe": {
+      "ratio": "21:9",
+      "prompt": "Top-down flat view of an old yellowed 1944 military paper map of Europe filling the entire frame, from the English Channel and Normandy on the far left to Moscow on the far right, faded country borders, hand-drawn coastlines, small printed city names, fold creases and coffee stains, no arrows, no markings, no people, no objects on it. Warm low lamp light from the left."
+    },
+    "eastern_front": {
+      "ratio": "16:9",
+      "prompt": "Authentic 1943 black and white WWII photograph, grainy: a vast frozen snowy steppe on the Eastern Front, a burnt-out German tank in the middle ground, a long line of exhausted German soldiers in greatcoats trudging through deep snow toward the horizon on the right, smoke rising from a burning village far away, heavy grey winter sky."
+    },
+    "wire_post": {
+      "ratio": "9:16",
+      "prompt": "A single crooked wooden fence post wrapped in rusty barbed wire, with snow on top, full height from top to bottom of the frame, sharp. $ISOLATE",
+      "cutout": {
+        "mode": "flood",
+        "hard": 30,
+        "soft": 20,
+        "edges": "tlrb"
+      }
+    },
+    "telegram": {
+      "ratio": "16:9",
+      "prompt": "POV photograph: two weathered hands holding up an old yellowed 1942 telegram form that fills most of the frame. Printed header 'MOST SECRET'. Typed text in capitals: 'FROM MOSCOW TO LONDON' and below it in large typed capitals 'A SECOND FRONT IN EUROPE IN 1942'. A red circular stamp in the corner. $ISOLATE",
+      "cutout": {
+        "mode": "flood",
+        "hard": 24,
+        "soft": 16,
+        "edges": "tlrb",
+        "erode": 6
+      }
+    },
+    "desk": {
+      "ratio": "16:9",
+      "prompt": "Overhead three-quarter view of a dark wooden 1943 government office desk at night under a green banker's lamp: a messy stack of yellowed telegrams and typed memos, a black rotary telephone, an ashtray with a pipe, a fountain pen, a small desk calendar showing 1943. Cinematic, warm low light, deep shadows, muted colours. No people. $PHOTO"
+    },
+    "column": {
+      "ratio": "9:16",
+      "prompt": "A tall classical stone column with a fluted shaft, pale sandstone, full height from top to bottom of the frame, photographed straight on. $ISOLATE",
+      "cutout": {
+        "mode": "flood",
+        "hard": 26,
+        "soft": 18,
+        "edges": "tlrb"
+      }
+    },
+    "tehran": {
+      "ratio": "16:9",
+      "prompt": "Authentic 1943 black and white press photograph, grainy: the Tehran Conference, November 1943. Joseph Stalin in a pale military tunic, Franklin D. Roosevelt in a dark suit with a cape over his shoulders, and Winston Churchill in a light uniform, seated side by side in armchairs on the columned portico of an embassy, officers and aides standing behind them."
+    },
+    "tanks": {
+      "ratio": "16:9",
+      "prompt": "Cinematic wide shot, summer 1944, Belarus: a long line of Soviet T-34 tanks charging across a wheat field toward the camera at low angle, Red Army infantry riding on the hulls, artillery smoke and dust clouds behind, hazy sun. Muted desaturated olive and brown palette. $PHOTO"
+    },
+    "tank_hull": {
+      "ratio": "21:9",
+      "prompt": "Extreme close side view of the lower hull of a WWII tank: muddy steel road wheels, tracks and armour plate filling the whole height of the frame, dark olive green, caked mud. $ISOLATE",
+      "cutout": {
+        "mode": "flood",
+        "hard": 26,
+        "soft": 18,
+        "edges": "tb"
+      }
+    },
+    "elbe": {
+      "ratio": "16:9",
+      "prompt": "Authentic April 1945 black and white WWII press photograph, grainy: on a broken steel bridge over the Elbe river, an American soldier in an M1 helmet and a Soviet soldier in a side cap reach across and shake hands, smiling, other American and Soviet soldiers crowded around them, river and riverbank behind."
+    },
+    "paper": {
+      "ratio": "1:1",
+      "prompt": "Flat full-frame texture of a sheet of old off-white 1940s paper, faint fibres, subtle foxing spots and slight yellowing, evenly lit, no text, no edges."
+    },
+    "shingle": {
+      "ratio": "21:9",
+      "prompt": "A low wide strip of wet grey pebbles, stones and beach shingle seen at ground level very close to the lens, sharp texture, occupying only the bottom half of the frame. $ISOLATE",
+      "cutout": {
+        "mode": "flood",
+        "hard": 26,
+        "soft": 18,
+        "edges": "tlr"
+      }
+    },
+    "runner": {
+      "ratio": "3:4",
+      "prompt": "Black and white 1944 WWII photograph style, grainy: a single American GI in full combat gear, M1 helmet, heavy pack with a rifle strapped across it, holding an M1 rifle low in both hands, running to the left in mid-stride through shallow surf, side profile, full body from helmet to boots. $ISOLATE",
+      "cutout": {
+        "mode": "flood",
+        "hard": 30,
+        "soft": 20,
+        "edges": "tlrb"
+      }
+    },
+    "boat_far": {
+      "ratio": "16:9",
+      "prompt": "Wide cinematic shot over choppy grey English Channel sea under a heavy overcast sky with tall smoke plumes on the hazy far horizon. A single grey WWII Higgins boat (LCVP) landing craft seen in three-quarter view from behind and slightly above, packed with dozens of American soldiers in olive helmets, the white hull number 71 near the stern, heading toward a hazy coastline. The boat sits in the centre of the frame and fills about half its width. Muted steel blue and olive palette. $PHOTO"
+    },
+    "boat_near": {
+      "ratio": "16:9",
+      "prompt": "Close cinematic shot of about fifteen American infantrymen in olive drab field jackets and M1 helmets crouched inside a grey steel Higgins boat landing craft, tense faces looking forward to the right. The raised grey front ramp is at the far left with a small 48-star US flag on it. The grey riveted hull wall runs across the bottom of the frame. $ISOLATE $PHOTO",
+      "cutout": {
+        "mode": "flood",
+        "hard": 26,
+        "soft": 18,
+        "edges": "tr",
+        "erode": 5
+      }
+    },
+    "cemetery": {
+      "ratio": "16:9",
+      "prompt": "The Normandy American Cemetery at Colleville-sur-Mer, eye-level shot with shallow depth of field, rows of white marble Latin cross headstones on a bright green lawn under a dark stormy charcoal sky. Left foreground: a white marble cross engraved in three lines 'THOMAS A. ANDERSON' / 'PFC 505 PIR 82 ABN DIV' / 'PENNSYLVANIA JULY 7 1944' with a red and white flower wreath at its base. Centre-right foreground, slightly closer: a white marble cross engraved 'ROBERT J. WILLIAMS' / '2 LT 116 INF 29 INF DIV' / 'NEW YORK JUNE 12 1944' with red and white flowers and a tiny US flag at its base. Rows of identical crosses recede behind them. $PHOTO"
+    },
+    "warroom": {
+      "ratio": "16:9",
+      "prompt": "June 1944 Allied headquarters war room, cinematic film still. Three senior officers lean over a large map table covered by a map of the English Channel and the Normandy coast: an American general in an olive uniform with stars on his shoulders on the left with both hands on the table, a Royal Navy admiral in a dark navy uniform in the centre reading a sheet of paper, a British army general in khaki with red collar tabs on the right pointing at the map with a pencil. A tall window on the left shows a grey stormy sea. A desk calendar reading 'JUNE 1944' with the 6 circled in red stands at the left of the table, a brass compass and folders in the foreground. Warm low practical light, dark wood, deep shadows. No captions, no watermark."
+    },
+    "newspaper": {
+      "ratio": "16:9",
+      "prompt": "POV photograph: two weathered old man's hands, thumbs in front, holding up an old yellowed 1944 newspaper front page that fills most of the frame. Masthead 'THE STARS AND STRIPES'. Huge bold condensed headline 'ALLIED FORCES LAND IN FRANCE'. Subhead 'Invasion Fleet Off Coast; Eisenhower Calls It ‘The Great Crusade’'. Below: a large black and white photo of troops wading ashore on a beach at the left; at the right a sepia photo that is exactly the attached war room image, headed 'Eisenhower Speaks to Allies'; lower down a wide photo of soldiers on a beach with the headline 'Nazis Say Invasion Is Beaten' and 'British Also Hit Coast'; narrow columns of small text between. $ISOLATE",
+      "ref": "warroom",
+      "cutout": {
+        "mode": "flood",
+        "hard": 22,
+        "soft": 16,
+        "edges": "tlrb",
+        "erode": 7
+      }
+    }
+  }
+}

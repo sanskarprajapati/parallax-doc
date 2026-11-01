@@ -2,7 +2,9 @@
 
 Short history documentaries in one continuous camera move, made by your coding agent.
 
-![Twelve frames from the D-Day example film](docs/preview.jpg)
+[![Opening of the D-Day example film](docs/preview.webp)](https://github.com/sanskarprajapati/parallax-doc/releases/download/v0.1.0/dday-example.mp4)
+
+*The first 14 seconds of the D-Day example. [Watch the full 1-minute film (with sound)](https://github.com/sanskarprajapati/parallax-doc/releases/download/v0.1.0/dday-example.mp4).*
 
 **parallax-doc** is a [Claude Code](https://claude.com/claude-code) plugin. It teaches
 the agent one documentary style and gives it the tools and scene blocks to build that
